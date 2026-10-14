@@ -145,7 +145,6 @@ html.printing #t-top tr.extra { display: none }
   </section>
 
   <section class="filters" aria-label="Filters">
-    <div class="f week"><label for="f-week">Week</label><select id="f-week"></select></div>
     <div class="f"><label for="f-p">Platform</label><select id="f-p" data-k="p"></select></div>
     <div class="f"><label for="f-d">Domain</label><select id="f-d" data-k="d"></select></div>
     <div class="f"><label for="f-l">Level</label><select id="f-l" data-k="l"></select></div>
@@ -413,8 +412,6 @@ async function showWeek(id) {
     console.error(e);
   } finally { $('#loading').hidden = true; $('#xlsx').disabled = false; }
 }
-$('#f-week').innerHTML = WEEKS.map(w => `<option value="${w.id}">${esc(w.label)}</option>`).join('');
-$('#f-week').addEventListener('change', e => showWeek(e.target.value));
 for (const s of document.querySelectorAll('select[data-k]')) s.addEventListener('change', () => { sel[s.dataset.k] = s.value === '' ? null : +s.value; draw(); });
 $('#clear').addEventListener('click', () => { for (const k in sel) sel[k] = null; draw(); });
 $('#t-top').addEventListener('click', e => { const tr = e.target.closest('tr[data-t]'); if (tr) toggle('t', +tr.dataset.t); });
@@ -459,7 +456,7 @@ $('#pdf').addEventListener('click', () => { const t = document.title; document.t
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resizeAll, 150); });
 
 $('#cs-rank').value = 'new3'; $('#cs-n').value = '10';   // always open on the default ranking
-showWeek(WEEKS[0].id);
+showWeek(WEEKS[0].id);   // always the latest week
 </script>
 </body>
 </html>
