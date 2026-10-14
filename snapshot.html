@@ -144,8 +144,6 @@ html.printing tbody tr.on td { background: transparent; font-weight: 600 }
     <div class="hint">Tip: click a bar or a topic row to filter by it. Every visual, figure and download follows the filters.</div>
   </section>
 
-  <section class="kpis" id="kpis"></section>
-
   <section class="grid" id="grid">
     <div class="loading" id="loading">Loading data…</div>
     <article class="card"><header><div><h2>Enrolments by domain</h2><div class="sub">Top 10 domains by total learners</div></div><button class="png" data-chart="c-enr" data-name="Enrolments by domain" type="button">PNG</button></header><div class="chart" id="c-enr"></div></article>
@@ -284,10 +282,6 @@ function lengthChart(L) {
 }
 function draw() {
   R = calculate();
-  const k = R.kpi;
-  $('#kpis').innerHTML = [[cmp(k.enrolments), 'Enrolments'], [k.rating == null ? '–' : k.rating.toFixed(2), 'Average rating'],
-    [k.launches == null ? '–' : nf(k.launches), k.launches == null ? 'New courses launched this week (no earlier week to compare)' : 'New courses launched this week'], [k.platforms, k.platforms === 1 ? 'Platform' : 'Platforms']]
-    .map(([v, l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
   hbar('c-enr', R.enrolDomain, cmp, '#1976d2', 'd');
   hbar('c-lpc', R.lpcDomain, cmp, '#25a8d9', 'd');
   hbar('c-rat', R.ratingPlatform, v => v.toFixed(2), '#1f9e8f', 'p', { min: 3, max: 5 });
@@ -346,10 +340,7 @@ $('#xlsx').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
   const filters = Object.entries(sel).map(([k, v]) => [DIMS[k], v == null ? 'All' : nameOf(k, v)]);
   const add = (name, rows, widths) => { const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = widths.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
-  add('Summary', [['Course Market Snapshot'], [D.weekLabel], [], ['Filter', 'Value'], ...filters, [], ['Measure', 'Value'],
-    ['Enrolments', Math.round(R.kpi.enrolments)], ['Average rating (courses with 10+ reviews)', R.kpi.rating == null ? null : +R.kpi.rating.toFixed(2)],
-    ['New courses launched this week', R.kpi.launches], ['Platforms', R.kpi.platforms], [],
-    ['Source: Course Market Data workbook (public course catalogues). Learners = lifetime enrolments reported by each platform.']], [44, 30]);
+  add('Summary', [['Course Market Snapshot'], [D.weekLabel], [], ['Filter', 'Value'], ...filters, [], ['Source: Course Market Data workbook (public course catalogues). Learners = lifetime enrolments reported by each platform.']], [44, 30]);
   add('Enrolments by domain', [['Domain', 'Enrolments'], ...R.enrolDomain.map(x => [x.name, Math.round(x.value)])], [40, 16]);
   add('Learners per course - domain', [['Domain', 'Learners per course', 'Courses reporting enrolments'], ...R.lpcDomain.map(x => [x.name, Math.round(x.value), x.courses])], [40, 20, 28]);
   add('Learners by course length', [['Course length', 'Learners per course', 'Courses reporting enrolments'], ...R.length.map(x => [x.name, Math.round(x.value), x.courses])], [16, 20, 28]);
