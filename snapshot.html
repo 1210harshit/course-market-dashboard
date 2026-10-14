@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Course Market Snapshot</title>
 <style>
-/* Layout: one A4-landscape sheet. Navy title band, a filter bar, 4 headline figures, then a 3 × 2 grid of visuals.
-   Same palette and type as the Course Market Intelligence dashboard. Light only: it is a printable report. */
+/* Layout: report sheet. Navy title band, filter bar, then a 3-column grid of visuals and full-width tables.
+   Same palette and type as the Course Market Intelligence dashboard. Light only: it is a printable report (3 × A4 landscape). */
 :root {
   --navy: #0f327e; --deep: #0c2253; --blue: #1976d2; --sky: #25a8d9; --teal: #1f9e8f; --orange: #e96f12;
-  --canvas: #eef1f6; --card: #ffffff; --line: #dfe3ea; --text: #1d2a44; --muted: #6b7489; --soft: #f5f7fb; --sel: #fff1e6;
+  --canvas: #eef1f6; --card: #ffffff; --line: #dfe3ea; --text: #1d2a44; --muted: #6b7489; --soft: #f5f7fb; --sel: #fff1e6; --slate: #3d4d70;
   --font: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color-scheme: light;
 }
@@ -37,49 +37,52 @@ button:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid
 
 /* filter bar */
 .filters { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: flex-end }
-.f { display: grid; gap: 3px; min-width: 0; flex: 1 1 150px }
+.f { display: grid; gap: 3px; min-width: 0; flex: 1 1 140px }
 .f.week { flex: 1.2 1 190px }
 .f label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px }
-.f select { font: 13px var(--font); color: var(--text); background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; width: 100%; min-width: 0 }
+select { font: 13px var(--font); color: var(--text); background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-width: 0 }
+.f select { width: 100% }
 .f select.on { background: var(--sel); border-color: var(--orange); font-weight: 600 }
 .clear { font: 600 12.5px var(--font); color: var(--blue); background: none; border: 0; padding: 7px 4px; cursor: pointer; white-space: nowrap }
 .clear:disabled { color: var(--muted); cursor: default }
 .hint { flex-basis: 100%; font-size: 11.5px; color: var(--muted) }
 
-/* headline figures */
-.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px }
-.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; border-top: 3px solid var(--blue) }
-.kpi:first-child { border-top-color: var(--orange) }
-.kpi .v { font-size: 26px; font-weight: 700; color: var(--navy); line-height: 1.15; font-variant-numeric: tabular-nums }
-.kpi .l { font-size: 12px; color: var(--muted) }
-
 /* visuals */
 .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; position: relative }
+.span2 { grid-column: span 2 } .span3 { grid-column: 1 / -1 }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px 8px; display: flex; flex-direction: column; min-width: 0 }
-.card header { display: flex; align-items: flex-start; gap: 8px }
-.card header > div { flex: 1; min-width: 0 }
+.card header { display: flex; align-items: flex-start; gap: 8px; flex-wrap: wrap }
+.card header > div:first-child { flex: 1 1 220px; min-width: 0 }
 .card h2 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text) }
 .card .sub { font-size: 12px; color: var(--muted); margin-top: 1px }
+.tools { display: flex; gap: 6px; align-items: center; flex-wrap: wrap }
+.tools label { font-size: 11.5px; color: var(--muted); display: flex; gap: 5px; align-items: center }
+.tools select { font-size: 12px; padding: 3px 6px }
 .png { font: 600 11px var(--font); color: var(--blue); background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; cursor: pointer; white-space: nowrap }
 .png:hover { background: #e6eefb }
 .chart { height: 270px; width: 100%; margin-top: 4px }
+.chart.tall { height: 330px }
 .loading { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(238,241,246,.75); border-radius: 6px; font-weight: 600; color: var(--navy); z-index: 2 }
 
-/* compact tables */
+/* tables */
 .tbl { margin-top: 6px; overflow-x: auto }
 table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums }
-th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; padding: 4px 6px; border-bottom: 1px solid var(--line) }
+th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; padding: 4px 6px; border-bottom: 1px solid var(--line); white-space: nowrap }
 td { padding: 4.5px 6px; border-bottom: 1px solid #eef0f4; vertical-align: top }
 tr:last-child td { border-bottom: 0 }
 tbody tr.pick { cursor: pointer }
 tbody tr.pick:hover td { background: var(--soft) }
 tbody tr.on td { background: var(--sel) }
-td.r, th.r { text-align: right }
-td.rank { color: var(--muted); width: 22px }
-td.t { max-width: 0; width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+td.r, th.r { text-align: right; white-space: nowrap }
+td.rank { color: var(--muted); width: 24px }
+td.t { max-width: 0; width: 46%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 td.t a { color: var(--text); text-decoration: none }
 td.t a:hover { color: var(--blue); text-decoration: underline }
 td.t small { display: block; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis }
+td.dom { color: var(--slate); white-space: nowrap; max-width: 210px; overflow: hidden; text-overflow: ellipsis }
+td.bar { position: relative; min-width: 110px }
+td.bar i { position: absolute; right: 6px; top: 5px; bottom: 5px; background: #d8e7f8; border-radius: 2px }
+td.bar span { position: relative }
 .empty { color: var(--muted); font-size: 12.5px; padding: 18px 6px }
 .chip { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 1px 7px; white-space: nowrap }
 .chip.up { background: #dff3ee; color: #136e63 } .chip.down { background: #fbe7dc; color: #a64a0a } .chip.na { color: var(--muted) }
@@ -87,21 +90,20 @@ td.t small { display: block; color: var(--muted); font-size: 11px; overflow: hid
 footer.src { font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding-inline: 2px }
 footer.src a { color: var(--blue) }
 
-@media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
-@media (max-width: 640px) { .grid { grid-template-columns: minmax(0, 1fr) } .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) } .kpi .v { font-size: 22px } }
+@media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) } .span2 { grid-column: 1 / -1 } }
+@media (max-width: 640px) { .grid { grid-template-columns: minmax(0, 1fr) } }
 
-/* print: one A4 landscape page */
+/* print: three A4 landscape pages */
 @page { size: A4 landscape; margin: 7mm }
 html.printing body { padding: 0; background: #fff }
 html.printing .sheet { width: 1090px; max-width: none; gap: 8px }
 html.printing .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
-html.printing .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px }
-html.printing .chart { height: 190px }
-html.printing .actions, html.printing .png, html.printing .filters { display: none }
+html.printing .span2 { grid-column: span 2 }
+html.printing .chart { height: 205px }
+html.printing .chart.tall { height: 245px }
+html.printing .actions, html.printing .png, html.printing .filters, html.printing .tools, html.printing .loading { display: none !important }
 html.printing .band { padding: 10px 14px }
-html.printing .kpi { padding: 6px 12px }
-html.printing .kpi .v { font-size: 22px }
-html.printing td { padding: 2px 5px; font-size: 11.5px; line-height: 1.3 }
+html.printing td { padding: 2px 5px; font-size: 11px; line-height: 1.3 }
 html.printing th { padding: 3px 5px }
 html.printing td.t small { display: inline; margin-left: 6px }
 html.printing .chip { padding: 0 6px; font-size: 10.5px }
@@ -110,11 +112,13 @@ html.printing .card { padding: 8px 10px 6px }
 html.printing .card .sub { font-size: 11px }
 html.printing footer.src { font-size: 10.5px }
 html.printing tbody tr.on td { background: transparent; font-weight: 600 }
+html.printing .pagebreak { break-before: page }
 @media print {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact }
   body { padding: 0; background: #fff }
-  .actions, .png, .filters { display: none }
-  .card, .kpi, .band { break-inside: avoid }
+  .actions, .png, .filters, .tools { display: none }
+  .card, .band { break-inside: avoid }
+  .pagebreak { break-before: page }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important } }
 </style>
@@ -138,10 +142,11 @@ html.printing tbody tr.on td { background: transparent; font-weight: 600 }
     <div class="f"><label for="f-p">Platform</label><select id="f-p" data-k="p"></select></div>
     <div class="f"><label for="f-d">Domain</label><select id="f-d" data-k="d"></select></div>
     <div class="f"><label for="f-l">Level</label><select id="f-l" data-k="l"></select></div>
+    <div class="f"><label for="f-y">Published</label><select id="f-y" data-k="y"></select></div>
     <div class="f"><label for="f-g">Language</label><select id="f-g" data-k="g"></select></div>
     <div class="f"><label for="f-t">Topic</label><select id="f-t" data-k="t"></select></div>
     <button class="clear" id="clear" type="button" disabled>Clear filters</button>
-    <div class="hint">Tip: click a bar or a topic row to filter by it. Every visual, figure and download follows the filters.</div>
+    <div class="hint">Tip: click a bar or a table row to filter by it. Every visual, table and download follows the filters.</div>
   </section>
 
   <section class="grid" id="grid">
@@ -150,12 +155,20 @@ html.printing tbody tr.on td { background: transparent; font-weight: 600 }
     <article class="card"><header><div><h2>Learners per course, by domain</h2><div class="sub">How many learners a course gets in each domain</div></div><button class="png" data-chart="c-lpc" data-name="Learners per course by domain" type="button">PNG</button></header><div class="chart" id="c-lpc"></div></article>
     <article class="card"><header><div><h2>Learners per course, by course length</h2><div class="sub">NA = length not available</div></div><button class="png" data-chart="c-len" data-name="Learners per course by course length" type="button">PNG</button></header><div class="chart" id="c-len"></div></article>
     <article class="card"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
-    <article class="card"><header><div><h2>Trending topics</h2><div class="sub">Top 10 by learners · trend = new courses this year vs last</div></div></header><div class="tbl" id="t-top"></div></article>
+    <article class="card span2"><header><div><h2>Level mix by domain</h2><div class="sub">Share of each domain's courses at each level · top 10 domains by learners</div></div><button class="png" data-chart="c-lvl" data-name="Level mix by domain" type="button">PNG</button></header><div class="chart" id="c-lvl"></div></article>
+    <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · top 10 domains by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
+    <article class="card span3"><header><div><h2>Trending topics by enrolment</h2><div class="sub">Top 15 topics by learners · trend = new courses in the last 12 months vs the 12 months before</div></div></header><div class="tbl" id="t-top"></div></article>
+    <article class="card span2 pagebreak"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
+      <div class="tools"><label for="cs-rank">Rank by <select id="cs-rank">
+        <option value="enr">Most enrolled</option><option value="new3">Fastest-growing new (last 3 months)</option><option value="new6">Fastest-growing new (last 6 months)</option>
+        <option value="new9">Fastest-growing new (last 9 months)</option><option value="rev">Most reviewed</option><option value="rating">Highest rated (50+ reviews)</option></select></label>
+        <label for="cs-n">Show <select id="cs-n"><option>10</option><option>25</option><option>50</option></select></label></div></header>
+      <div class="tbl" id="t-courses"></div></article>
     <article class="card"><header><div><h2>Fastest-growing new courses</h2><div class="sub">Launched in the last 3 months · learners per month</div></div></header><div class="tbl" id="t-new"></div></article>
   </section>
 
   <footer class="src">
-    <span id="src">Source: Course Market Data workbook (public course catalogues). Learners = lifetime enrolments reported by each platform; some platforms do not publish them.</span>
+    <span>Source: Course Market Data workbook (public course catalogues). Learners = lifetime enrolments reported by each platform; some platforms do not publish them.</span>
     <span>Full interactive dashboard: <a href="./">Course Market Intelligence</a></span>
   </footer>
 </main>
@@ -167,10 +180,13 @@ const WEEKS = [{"id": "2026-10-09", "label": "Week 2 · Oct 2026 (latest)", "fil
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const nf = v => v == null ? '–' : Math.round(v).toLocaleString('en-US');
+const pct = v => v == null ? '–' : (v * 100).toFixed(v < .1 ? 1 : 0) + '%';
 const cmp = v => { if (v == null) return '–'; const a = Math.abs(v); for (const [d, s] of [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']]) if (a >= d) return (v / d).toFixed(a >= d * 100 ? 0 : a >= d * 10 ? 1 : 2).replace(/\.0+$/, '') + s; return String(Math.round(v)); };
-const sel = { p: null, d: null, l: null, g: null, t: null };   // one choice per filter; null = all
-const DIMS = { p: 'Platform', d: 'Domain', l: 'Level', g: 'Language', t: 'Topic' };
-let D = null, R = null;   // current week's data and the latest calculated results
+const sel = { p: null, d: null, l: null, y: null, g: null, t: null };   // one choice per filter; null = all
+const DIMS = { p: 'Platform', d: 'Domain', l: 'Level', y: 'Published', g: 'Language', t: 'Topic' };
+const FD = ['p', 'd', 'l', 'y', 'g'];   // filters stored on every row (topic is a list)
+let D = null, R = null;
+const C_ = { title: 0, url: 1, p: 2, d: 3, l: 4, y: 5, g: 6, topics: 7, enr: 8, rev: 9, rating: 10, vel: 11, age: 12, prov: 13 };   // course pool columns
 
 // ---------------- data
 const cache = {};
@@ -193,61 +209,91 @@ async function loadWeek(id) {
 // ---------------- calculations (cube rows normally; course rows when a topic is chosen, so each course counts once)
 const ND = () => D.durations.length;
 function blank() { return { n: 0, eS: 0, eN: 0, rS: 0, rN: 0, dE: new Array(ND()).fill(0), dEN: new Array(ND()).fill(0), plats: new Set() }; }
-function scan(skip, keyOf) {
-  const out = new Map(), tot = blank(), add = (k, f) => { if (keyOf) { let o = out.get(k); if (!o) out.set(k, o = blank()); f(o); } f(tot); };
+// one pass over the rows passing every filter except those in `skip`; keyOf(dims) groups rows (dims = {p,d,l,y,g} of the row)
+function scan(skip = [], keyOf = null) {
+  const out = new Map(), tot = blank();
+  const put = (k, f) => { if (keyOf) { let o = out.get(k); if (!o) out.set(k, o = blank()); f(o); } f(tot); };
+  const act = FD.filter(k => !skip.includes(k) && sel[k] != null);
   if (sel.t == null) {
-    const C = D.cube, cols = { p: C.pi, d: C.di, l: C.li, g: C.gi };
-    const act = Object.keys(cols).filter(k => k !== skip && sel[k] != null);
+    const C = D.cube, cols = { p: C.pi, d: C.di, l: C.li, y: C.yi, g: C.gi };
     for (let i = 0; i < D.nRows; i++) {
+      if (!C.n[i]) continue;
       let ok = true; for (const k of act) if (cols[k][i] !== sel[k]) { ok = false; break; }
-      if (!ok || !C.n[i]) continue;
-      const h = []; for (let j = 0; j < ND(); j++) if (C['dEN' + j][i] || C['dE' + j][i]) h.push(j);
-      add(keyOf ? keyOf(C, i, 'cube') : null, o => { o.n += C.n[i]; o.eS += C.eS[i]; o.eN += C.eN[i]; o.rS += C.rS[i]; o.rN += C.rN[i]; o.plats.add(C.pi[i]);
+      if (!ok) continue;
+      const h = []; for (let j = 0; j < ND(); j++) if (C['dEN' + j][i]) h.push(j);
+      const key = keyOf ? keyOf({ p: C.pi[i], d: C.di[i], l: C.li[i], y: C.yi[i], g: C.gi[i] }) : null;
+      put(key, o => { o.n += C.n[i]; o.eS += C.eS[i]; o.eN += C.eN[i]; o.rS += C.rS[i]; o.rN += C.rN[i]; o.plats.add(C.pi[i]);
         for (const j of h) { o.dE[j] += C['dE' + j][i]; o.dEN[j] += C['dEN' + j][i]; } });
     }
   } else {
-    const T = D.ct, act = ['p', 'd', 'l', 'g'].filter(k => k !== skip && sel[k] != null);
+    const T = D.ct;
     for (let i = 0; i < D.ctRows; i++) {
       let ok = true; for (const k of act) if (T[k][i] !== sel[k]) { ok = false; break; }
       if (!ok) continue;
       let has = false; for (let j = T.toff[i]; j < T.toff[i + 1]; j++) if (T.tid[j] === sel.t) { has = true; break; }
       if (!has) continue;
       const e = T.e[i], r = T.r[i], v = T.v[i], h = T.h[i];
-      add(keyOf ? keyOf(T, i, 'ct') : null, o => { o.n++; o.plats.add(T.p[i]);
+      const key = keyOf ? keyOf({ p: T.p[i], d: T.d[i], l: T.l[i], y: T.y[i], g: T.g[i] }) : null;
+      put(key, o => { o.n++; o.plats.add(T.p[i]);
         if (e >= 0) { o.eS += e; o.eN++; o.dE[h] += e; o.dEN[h]++; }
         if (r >= 0 && v >= 10) { o.rS += r / 100; o.rN++; } });
     }
   }
   return { tot, groups: out };
 }
-const passes = (r, keys) => { for (const k of keys) if (sel[k] != null && r[k] !== sel[k]) return false; return true; };
+const rowPasses = r => FD.every(k => sel[k] == null || r[C_[k]] === sel[k]) && (sel.t == null || (r[C_.topics] || []).includes(sel.t));
 function calculate() {
-  const all = scan(null), byD = scan('d', (S, i, src) => src === 'cube' ? S.di[i] : S.d[i]), byP = scan('p', (S, i, src) => src === 'cube' ? S.pi[i] : S.p[i]);
-  const t = all.tot;
+  const t = scan().tot, byD = scan(['d'], x => x.d), byP = scan(['p'], x => x.p);
   const dom = [...byD.groups].filter(([k]) => k !== D.OTHER);
-  const enrolDomain = dom.filter(([, o]) => o.eS > 0).sort((a, b) => b[1].eS - a[1].eS).slice(0, 10).map(([k, o]) => ({ k, name: D.domains[k], value: o.eS }));
+  const top10 = dom.filter(([, o]) => o.eS > 0).sort((a, b) => b[1].eS - a[1].eS).slice(0, 10);
+  const enrolDomain = top10.map(([k, o]) => ({ k, name: D.domains[k], value: o.eS }));
   const lpcDomain = dom.filter(([, o]) => o.eN >= 30).sort((a, b) => b[1].eS / b[1].eN - a[1].eS / a[1].eN).slice(0, 10).map(([k, o]) => ({ k, name: D.domains[k], value: o.eS / o.eN, courses: o.eN }));
   const ratingPlatform = [...byP.groups].filter(([, o]) => o.rN >= 30).sort((a, b) => b[1].rS / b[1].rN - a[1].rS / a[1].rN).slice(0, 10).map(([k, o]) => ({ k, name: D.platforms[k], value: o.rS / o.rN, rated: o.rN }));
   const length = D.durations.map((name, j) => ({ name, value: t.dEN[j] ? t.dE[j] / t.dEN[j] : null, courses: t.dEN[j] })).filter(x => x.courses);
+  // level mix (share of courses) and platform share (share of learners) for the same top 10 domains
+  const doms = top10.map(([k]) => k);
+  const dl = scan(['d', 'l'], x => x.d * 100 + x.l).groups, dp = scan(['d', 'p'], x => x.d * 1000 + x.p).groups;
+  const levelMix = doms.map(d => { const n = D.levels.map((_, l) => dl.get(d * 100 + l)?.n || 0), s = n.reduce((a, b) => a + b, 0) || 1; return { k: d, name: D.domains[d], shares: n.map(v => v / s) }; });
+  const platTot = new Map(); for (const [key, o] of dp) { if (doms.includes(Math.floor(key / 1000))) platTot.set(key % 1000, (platTot.get(key % 1000) || 0) + o.eS); }
+  const shown = [...platTot].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 7).map(([p]) => p);
+  const platShare = { platforms: shown.map(p => ({ k: p, name: D.platforms[p] })), rows: doms.map(d => {
+    const tot = D.platforms.reduce((a, _, p) => a + (dp.get(d * 1000 + p)?.eS || 0), 0) || 1;
+    const sh = shown.map(p => (dp.get(d * 1000 + p)?.eS || 0) / tot);
+    return { k: d, name: D.domains[d], shares: sh, other: Math.max(0, 1 - sh.reduce((a, b) => a + b, 0)) }; }) };
   // topics: every course counted once per topic; the topic filter itself only highlights the row
-  const T = D.ct, tg = new Map();
+  const T = D.ct, tg = new Map(); let allE = 0;
   for (let i = 0; i < D.ctRows; i++) {
-    if ((sel.p != null && T.p[i] !== sel.p) || (sel.d != null && T.d[i] !== sel.d) || (sel.l != null && T.l[i] !== sel.l) || (sel.g != null && T.g[i] !== sel.g)) continue;
-    const e = T.e[i], ad = T.ad[i];
+    let ok = true; for (const k of FD) if (sel[k] != null && T[k][i] !== sel[k]) { ok = false; break; }
+    if (!ok) continue;
+    const e = T.e[i], ad = T.ad[i]; if (e > 0) allE += e;
     for (let j = T.toff[i]; j < T.toff[i + 1]; j++) {
       let a = tg.get(T.tid[j]); if (!a) tg.set(T.tid[j], a = [0, 0, 0, 0]);
       if (e >= 0) { a[0] += e; a[1]++; }
       if (ad >= 0 && ad <= 364) a[2]++; else if (ad >= 365 && ad <= 729) a[3]++;
     }
   }
-  const topics = [...tg].filter(([, a]) => a[0] > 0).sort((a, b) => b[1][0] - a[1][0]).slice(0, 10)
-    .map(([k, a]) => ({ k, name: D.topics[k], domain: D.domains[D.topicDomain[k]], enrolments: a[0], perCourse: a[1] >= 30 ? a[0] / a[1] : null, growth: a[3] >= 40 ? a[2] / a[3] - 1 : null }));
+  const topics = [...tg].filter(([, a]) => a[0] > 0).sort((a, b) => b[1][0] - a[1][0]).slice(0, 15)
+    .map(([k, a]) => ({ k, name: D.topics[k], domain: D.domains[D.topicDomain[k]], enrolments: a[0], share: allE ? a[0] / allE : null, perCourse: a[1] >= 30 ? a[0] / a[1] : null, growth: a[3] >= 40 ? a[2] / a[3] - 1 : null }));
+  const pool = D.courses.filter(rowPasses);
+  const fastNew = pool.filter(r => r[C_.age] != null && r[C_.age] <= 90 && r[C_.vel] != null).sort((a, b) => b[C_.vel] - a[C_.vel]).slice(0, 10).map(courseObj);
+  return { enrolDomain, lpcDomain, ratingPlatform, length, levelMix, platShare, topics, pool, fastNew };
+}
+function courseObj(r) {
   const asOf = Date.parse(D.asOfISO);
-  const fastNew = D.courses.filter(r => passes({ p: r[2], d: r[3], l: r[4], g: r[5] }, ['p', 'd', 'l', 'g']) && (sel.t == null || (r[6] || []).includes(sel.t)))
-    .sort((a, b) => b[8] - a[8]).slice(0, 10)
-    .map(r => ({ title: r[0], url: r[1], platform: D.platforms[r[2]], domain: D.domains[r[3]], launched: new Date(asOf - r[9] * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }), perMonth: r[8], enrolments: r[7] }));
-  const launches = D.launches ? D.launches.filter(r => passes({ p: r[0], d: r[1], l: r[2], g: r[3] }, ['p', 'd', 'l', 'g']) && (sel.t == null || (r[4] || []).includes(sel.t))).length : null;
-  return { kpi: { enrolments: t.eS, rating: t.rN ? t.rS / t.rN : null, launches, platforms: t.plats.size }, enrolDomain, lpcDomain, ratingPlatform, length, topics, fastNew };
+  return { title: r[C_.title], url: r[C_.url], platform: D.platforms[r[C_.p]], provider: r[C_.prov], domain: D.domains[r[C_.d]], enrolments: r[C_.enr], reviews: r[C_.rev], rating: r[C_.rating],
+    perMonth: r[C_.vel], launched: r[C_.age] == null ? null : new Date(asOf - r[C_.age] * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) };
+}
+const RANK = {
+  enr: { label: 'Most enrolled', ok: r => r[C_.enr] > 0, v: r => r[C_.enr] },
+  new3: { label: 'Fastest-growing new courses (last 3 months)', ok: r => r[C_.age] != null && r[C_.age] <= 90 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
+  new6: { label: 'Fastest-growing new courses (last 6 months)', ok: r => r[C_.age] != null && r[C_.age] <= 182 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
+  new9: { label: 'Fastest-growing new courses (last 9 months)', ok: r => r[C_.age] != null && r[C_.age] <= 273 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
+  rev: { label: 'Most reviewed', ok: r => r[C_.rev] > 0, v: r => r[C_.rev] },
+  rating: { label: 'Highest rated (50+ reviews)', ok: r => (r[C_.rev] || 0) >= 50 && r[C_.rating] != null, v: r => r[C_.rating] * 1e7 + (r[C_.rev] || 0) },
+};
+function topCourses() {
+  const m = RANK[$('#cs-rank').value], n = +$('#cs-n').value;
+  return { mode: $('#cs-rank').value, list: R.pool.filter(m.ok).sort((a, b) => m.v(b) - m.v(a)).slice(0, n).map(courseObj) };
 }
 
 // ---------------- drawing
@@ -255,19 +301,34 @@ const INK = '#1d2a44', MUTED = '#6b7489', LINE = '#dfe3ea', PICK = '#e96f12';
 const charts = {};
 const chart = id => charts[id] || (charts[id] = echarts.init(document.getElementById(id), null, { renderer: 'canvas', devicePixelRatio: Math.max(2, window.devicePixelRatio || 1) }));
 const TIP = { backgroundColor: '#0c2253', borderWidth: 0, textStyle: { color: '#fff', fontSize: 12 } };
+const LEG = { top: 0, left: 0, itemWidth: 10, itemHeight: 10, itemGap: 10, textStyle: { color: INK, fontSize: 11 } };
 const empty = id => chart(id).setOption({ title: { text: 'No data for this selection', left: 'center', top: 'middle', textStyle: { color: MUTED, fontSize: 12, fontWeight: 400 } }, xAxis: [], yAxis: [], series: [] }, true);
 function hbar(id, items, fmt, color, dim, opts = {}) {
   if (!items.length) return empty(id);
   const rows = items.slice().reverse();
   chart(id).setOption({
     animation: false, grid: { left: 4, right: 52, top: 4, bottom: 4, containLabel: true },
-    tooltip: { ...TIP, trigger: 'item', formatter: p => `<b>${esc(p.name)}</b><br>${fmt(p.value)}<br><span style="opacity:.7">Click to ${sel[dim] === p.data.k ? 'clear the' : ''} filter</span>` },
+    tooltip: { ...TIP, trigger: 'item', formatter: p => `<b>${esc(p.name)}</b><br>${fmt(p.value)}<br><span style="opacity:.7">Click to ${sel[dim] === p.data.k ? 'clear the filter' : 'filter'}</span>` },
     xAxis: { type: 'value', show: false, ...(opts.min != null ? { min: opts.min, max: opts.max } : {}) },
     yAxis: { type: 'category', data: rows.map(x => x.name), axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11, width: 165, overflow: 'truncate', interval: 0 } },
     series: [{ type: 'bar', barMaxWidth: 14, data: rows.map(x => ({ value: x.value, k: x.k, itemStyle: { color: sel[dim] === x.k ? PICK : color, opacity: sel[dim] != null && sel[dim] !== x.k ? .45 : 1, borderRadius: [0, 2, 2, 0] } })),
       label: { show: true, position: 'right', color: INK, fontSize: 11, fontWeight: 600, formatter: p => fmt(p.value) } }]
   }, true);
   chart(id).off('click'); chart(id).on('click', p => p.data && toggle(dim, p.data.k));
+}
+function stacked(id, rows, series, onClick) {   // 100% stacked horizontal bars; rows = [{k, name, shares[]}], series = [{name, color, k?}]
+  if (!rows.length) return empty(id);
+  const rr = rows.slice().reverse();
+  chart(id).setOption({
+    animation: false, legend: { ...LEG, data: series.map(s => s.name) }, grid: { left: 4, right: 12, top: 30, bottom: 4, containLabel: true },
+    tooltip: { ...TIP, trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: ps => `<b>${esc(ps[0].name)}</b><br>` + ps.filter(p => p.value > 0).map(p => `${p.marker}${esc(p.seriesName)}: ${pct(p.value)}`).join('<br>') },
+    xAxis: { type: 'value', max: 1, splitNumber: 4, axisLabel: { color: MUTED, fontSize: 10, formatter: v => Math.round(v * 100) + '%' }, splitLine: { lineStyle: { color: '#e6e9ef', type: 'dashed' } } },
+    yAxis: { type: 'category', data: rr.map(x => x.name), axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11, width: 165, overflow: 'truncate', interval: 0 } },
+    series: series.map((s, si) => ({ name: s.name, type: 'bar', stack: 'a', barMaxWidth: 16, itemStyle: { color: s.color }, emphasis: { focus: 'series' },
+      data: rr.map(x => ({ value: x.shares[si], k: x.k, sk: s.k })),
+      label: { show: true, color: s.dark ? '#fff' : INK, fontSize: 10, formatter: p => p.value >= .09 ? Math.round(p.value * 100) + '%' : '' } }))
+  }, true);
+  chart(id).off('click'); if (onClick) chart(id).on('click', p => p.data && onClick(p.data));
 }
 function lengthChart(L) {
   if (!L.length) return empty('c-len');
@@ -280,30 +341,46 @@ function lengthChart(L) {
       label: { show: true, position: 'top', color: INK, fontSize: 11, fontWeight: 600, formatter: p => cmp(p.value) } }]
   }, true);
 }
+const LEVEL_COLORS = ['#9ae1f8', '#25a8d9', '#0f327e', '#1f9e8f', '#d5dae3'];
+const PLAT_COLORS = ['#0f327e', '#1976d2', '#25a8d9', '#1f9e8f', '#e96f12', '#8a6bbf', '#f2b134'];
+function drawCourses() {
+  const { mode, list } = topCourses(), isNew = RANK[mode].isNew;
+  $('#cs-sub').textContent = RANK[mode].label + (isNew ? ' · learners gained per month since launch' : '');
+  $('#t-courses').innerHTML = list.length ? `<table><thead><tr><th></th><th>Course</th><th>Domain</th>${isNew ? '<th class="r">Launched</th><th class="r">Per month</th>' : ''}<th class="r">Learners</th><th class="r">Reviews</th><th class="r">Rating</th></tr></thead><tbody>${
+    list.map((c, i) => `<tr><td class="rank">${i + 1}</td><td class="t" title="${esc(c.title)}"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a><small>${esc(c.platform)}${c.provider ? ' · ' + esc(c.provider) : ''}</small></td><td class="dom">${esc(c.domain)}</td>${
+      isNew ? `<td class="r">${esc(c.launched)}</td><td class="r">${cmp(c.perMonth)}</td>` : ''}<td class="r">${nf(c.enrolments)}</td><td class="r">${nf(c.reviews)}</td><td class="r">${c.rating == null ? '–' : c.rating.toFixed(2)}</td></tr>`).join('')}</tbody></table>`
+    : '<div class="empty">No courses for this selection.</div>';
+}
 function draw() {
   R = calculate();
   hbar('c-enr', R.enrolDomain, cmp, '#1976d2', 'd');
   hbar('c-lpc', R.lpcDomain, cmp, '#25a8d9', 'd');
   hbar('c-rat', R.ratingPlatform, v => v.toFixed(2), '#1f9e8f', 'p', { min: 3, max: 5 });
   lengthChart(R.length);
-  $('#t-top').innerHTML = R.topics.length ? `<table><thead><tr><th></th><th>Topic</th><th class="r">Learners</th><th class="r">Trend</th></tr></thead><tbody>${
+  stacked('c-lvl', R.levelMix, D.levels.map((n, i) => ({ name: n, color: LEVEL_COLORS[i % LEVEL_COLORS.length], dark: i === 2 })), x => toggle('d', x.k));
+  stacked('c-psh', R.platShare.rows.map(r => ({ ...r, shares: [...r.shares, r.other] })),
+    [...R.platShare.platforms.map((p, i) => ({ k: p.k, name: p.name, color: PLAT_COLORS[i], dark: i < 2 })), { name: 'Other platforms', color: '#d5dae3' }],
+    x => x.sk != null ? toggle('p', x.sk) : toggle('d', x.k));
+  const maxE = Math.max(...R.topics.map(t => t.enrolments), 1);
+  $('#t-top').innerHTML = R.topics.length ? `<table><thead><tr><th></th><th>Topic</th><th>Domain</th><th class="r">Learners</th><th class="r">Share of learners</th><th class="r">Learners per course</th><th class="r">New-course trend</th></tr></thead><tbody>${
     R.topics.map((t, i) => { const g = t.growth;
       const chip = g == null ? '<span class="chip na">–</span>' : `<span class="chip ${g >= 0 ? 'up' : 'down'}">${g >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(g * 100))}%</span>`;
-      return `<tr class="pick ${sel.t === t.k ? 'on' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank">${i + 1}</td><td class="t">${esc(t.name)}<small>${esc(t.domain)}</small></td><td class="r">${cmp(t.enrolments)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
+      return `<tr class="pick ${sel.t === t.k ? 'on' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank">${i + 1}</td><td class="t"><b>${esc(t.name)}</b></td><td class="dom">${esc(t.domain)}</td><td class="r bar"><i style="width:calc(${(t.enrolments / maxE * 100).toFixed(1)}% - 12px)"></i><span>${cmp(t.enrolments)}</span></td><td class="r">${pct(t.share)}</td><td class="r">${t.perCourse == null ? '–' : nf(t.perCourse)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
     : '<div class="empty">No topics for this selection.</div>';
+  drawCourses();
   $('#t-new').innerHTML = R.fastNew.length ? `<table><thead><tr><th></th><th>Course</th><th class="r">Per month</th></tr></thead><tbody>${
     R.fastNew.map((c, i) => `<tr><td class="rank">${i + 1}</td><td class="t" title="${esc(c.title)}"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a><small>${esc(c.platform)} · launched ${esc(c.launched)}</small></td><td class="r">${cmp(c.perMonth)}</td></tr>`).join('')}</tbody></table>`
     : '<div class="empty">No courses launched in the last 3 months for this selection.</div>';
-  // filter controls reflect the state
   for (const s of document.querySelectorAll('select[data-k]')) { const v = sel[s.dataset.k]; s.value = v == null ? '' : String(v); s.classList.toggle('on', v != null); }
   const applied = Object.entries(sel).filter(([, v]) => v != null).map(([k, v]) => `${DIMS[k]}: ${nameOf(k, v)}`);
   $('#applied').hidden = !applied.length; $('#applied').textContent = applied.length ? 'Filtered by ' + applied.join(' · ') : '';
   $('#clear').disabled = !applied.length;
 }
-const nameOf = (k, v) => ({ p: D.platforms, d: D.domains, l: D.levels, g: D.languages, t: D.topics })[k][v];
+const nameOf = (k, v) => ({ p: D.platforms, d: D.domains, l: D.levels, y: D.years, g: D.languages, t: D.topics })[k][v];
 function toggle(k, v) { sel[k] = sel[k] === v ? null : v; draw(); }
-function fillSelect(id, names, allLabel, skip = -1) {
-  const order = names.map((n, i) => [n, i]).filter(([, i]) => i !== skip).sort((a, b) => a[0].localeCompare(b[0]));
+function fillSelect(id, names, allLabel, { skip = -1, sort = true } = {}) {
+  let order = names.map((n, i) => [n, i]).filter(([, i]) => i !== skip);
+  if (sort) order.sort((a, b) => a[0].localeCompare(b[0]));
   $(id).innerHTML = `<option value="">${allLabel}</option>` + order.map(([n, i]) => `<option value="${i}">${esc(n)}</option>`).join('');
 }
 
@@ -313,8 +390,8 @@ async function showWeek(id) {
   try {
     D = await loadWeek(id);
     $('#meta').innerHTML = `<b>${esc(D.weekLabel)}</b> · data as of ${new Date(Date.parse(D.asOfISO)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })} · ${D.platforms.length} platforms`;
-    fillSelect('#f-p', D.platforms, 'All platforms'); fillSelect('#f-d', D.domains, 'All domains', D.OTHER);
-    $('#f-l').innerHTML = '<option value="">All levels</option>' + D.levels.map((n, i) => `<option value="${i}">${esc(n)}</option>`).join('');
+    fillSelect('#f-p', D.platforms, 'All platforms'); fillSelect('#f-d', D.domains, 'All domains', { skip: D.OTHER });
+    fillSelect('#f-l', D.levels, 'All levels', { sort: false }); fillSelect('#f-y', D.years, 'All years', { sort: false });
     fillSelect('#f-g', D.languages, 'All languages'); fillSelect('#f-t', D.topics, 'All topics');
     draw();
   } catch (e) {
@@ -327,6 +404,8 @@ $('#f-week').addEventListener('change', e => showWeek(e.target.value));
 for (const s of document.querySelectorAll('select[data-k]')) s.addEventListener('change', () => { sel[s.dataset.k] = s.value === '' ? null : +s.value; draw(); });
 $('#clear').addEventListener('click', () => { for (const k in sel) sel[k] = null; draw(); });
 $('#t-top').addEventListener('click', e => { const tr = e.target.closest('tr[data-t]'); if (tr) toggle('t', +tr.dataset.t); });
+$('#cs-rank').addEventListener('change', () => R && drawCourses());
+$('#cs-n').addEventListener('change', () => R && drawCourses());
 
 // ---------------- downloads
 const fileStem = () => `Course Market Snapshot - ${D.weekLabel}` + (Object.values(sel).some(v => v != null) ? ' (filtered)' : '');
@@ -338,16 +417,22 @@ document.querySelectorAll('.png').forEach(b => b.addEventListener('click', () =>
 $('#xlsx').addEventListener('click', () => {
   if (!R || !window.XLSX) return;
   const wb = XLSX.utils.book_new();
-  const filters = Object.entries(sel).map(([k, v]) => [DIMS[k], v == null ? 'All' : nameOf(k, v)]);
   const add = (name, rows, widths) => { const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = widths.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
-  add('Summary', [['Course Market Snapshot'], [D.weekLabel], [], ['Filter', 'Value'], ...filters, [], ['Source: Course Market Data workbook (public course catalogues). Learners = lifetime enrolments reported by each platform.']], [44, 30]);
+  const p1 = v => v == null ? null : +(v * 100).toFixed(1);
+  add('Summary', [['Course Market Snapshot'], [D.weekLabel], [], ['Filter', 'Value'], ...Object.entries(sel).map(([k, v]) => [DIMS[k], v == null ? 'All' : nameOf(k, v)]), [],
+    ['Source: Course Market Data workbook (public course catalogues). Learners = lifetime enrolments reported by each platform.']], [24, 40]);
   add('Enrolments by domain', [['Domain', 'Enrolments'], ...R.enrolDomain.map(x => [x.name, Math.round(x.value)])], [40, 16]);
   add('Learners per course - domain', [['Domain', 'Learners per course', 'Courses reporting enrolments'], ...R.lpcDomain.map(x => [x.name, Math.round(x.value), x.courses])], [40, 20, 28]);
   add('Learners by course length', [['Course length', 'Learners per course', 'Courses reporting enrolments'], ...R.length.map(x => [x.name, Math.round(x.value), x.courses])], [16, 20, 28]);
   add('Rating by platform', [['Platform', 'Average rating', 'Rated courses'], ...R.ratingPlatform.map(x => [x.name, +x.value.toFixed(2), x.rated])], [28, 16, 16]);
-  add('Trending topics', [['Topic', 'Domain', 'Learners', 'Learners per course', 'New-course trend (this year vs last)'],
-    ...R.topics.map(x => [x.name, x.domain, Math.round(x.enrolments), x.perCourse == null ? null : Math.round(x.perCourse), x.growth == null ? null : `${x.growth >= 0 ? '+' : ''}${Math.round(x.growth * 100)}%`])], [36, 32, 16, 20, 30]);
-  add('Fastest-growing new courses', [['Course', 'Platform', 'Domain', 'Launched on', 'Learners per month', 'Total learners', 'Link'],
+  add('Level mix by domain', [['Domain', ...D.levels.map(l => l + ' (%)')], ...R.levelMix.map(x => [x.name, ...x.shares.map(p1)])], [40, ...D.levels.map(() => 16)]);
+  add('Platform share of domains', [['Domain', ...R.platShare.platforms.map(p => p.name + ' (%)'), 'Other platforms (%)'], ...R.platShare.rows.map(x => [x.name, ...x.shares.map(p1), p1(x.other)])], [40, ...R.platShare.platforms.map(() => 18), 20]);
+  add('Trending topics', [['Topic', 'Domain', 'Learners', 'Share of learners (%)', 'Learners per course', 'New-course trend (last 12 months vs the 12 before)'],
+    ...R.topics.map(x => [x.name, x.domain, Math.round(x.enrolments), p1(x.share), x.perCourse == null ? null : Math.round(x.perCourse), x.growth == null ? null : `${x.growth >= 0 ? '+' : ''}${Math.round(x.growth * 100)}%`])], [36, 32, 16, 20, 20, 44]);
+  const tc = topCourses();
+  add('Top courses', [[RANK[tc.mode].label], ['Course', 'Platform', 'Provider', 'Domain', 'Launched on', 'Learners per month', 'Learners', 'Reviews', 'Rating', 'Link'],
+    ...tc.list.map(x => [x.title, x.platform, x.provider, x.domain, x.launched, x.perMonth == null ? null : Math.round(x.perMonth), x.enrolments, x.reviews, x.rating, x.url])], [60, 18, 26, 30, 14, 18, 14, 12, 10, 60]);
+  add('Fastest-growing new courses', [['Course', 'Platform', 'Domain', 'Launched on', 'Learners per month', 'Learners', 'Link'],
     ...R.fastNew.map(x => [x.title, x.platform, x.domain, x.launched, Math.round(x.perMonth), x.enrolments, x.url])], [60, 18, 30, 14, 18, 14, 60]);
   XLSX.writeFile(wb, fileStem() + '.xlsx');
 });
