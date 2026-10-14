@@ -292,9 +292,9 @@ function courseObj(r) {
     perMonth: r[C_.vel], days: r[C_.age], perDay: r[C_.enr] != null && r[C_.age] != null ? r[C_.enr] / Math.max(r[C_.age], 1) : null, growth: r[C_.gr], launched: r[C_.age] == null ? null : new Date(asOf - r[C_.age] * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) };
 }
 const RANK = {
-  new3: { label: 'Fastest-growing new courses (last 3 months)', ok: r => r[C_.age] != null && r[C_.age] <= 90 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
-  new6: { label: 'Fastest-growing new courses (last 6 months)', ok: r => r[C_.age] != null && r[C_.age] <= 182 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
-  new9: { label: 'Fastest-growing new courses (last 9 months)', ok: r => r[C_.age] != null && r[C_.age] <= 273 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
+  new3: { label: 'Fastest-growing new courses (last 3 months)', ok: r => r[C_.age] != null && r[C_.age] <= 90 && r[C_.enr] > 0, v: r => r[C_.enr] / Math.max(r[C_.age], 1), isNew: 1 },
+  new6: { label: 'Fastest-growing new courses (last 6 months)', ok: r => r[C_.age] != null && r[C_.age] <= 182 && r[C_.enr] > 0, v: r => r[C_.enr] / Math.max(r[C_.age], 1), isNew: 1 },
+  new9: { label: 'Fastest-growing new courses (last 9 months)', ok: r => r[C_.age] != null && r[C_.age] <= 273 && r[C_.enr] > 0, v: r => r[C_.enr] / Math.max(r[C_.age], 1), isNew: 1 },
   rating: { label: 'Highest rated (50+ reviews)', ok: r => (r[C_.rev] || 0) >= 50 && r[C_.rating] != null, v: r => r[C_.rating] * 1e7 + (r[C_.rev] || 0) },
 };
 function topCourses() {
@@ -356,10 +356,10 @@ const growthChip = g => g == null ? '<span class="chip na">–</span>' : g === 0
 const perDayFmt = v => v == null ? '–' : v >= 1000 ? cmp(v) : v >= 10 ? nf(v) : v.toFixed(1);
 function drawCourses() {
   const { mode, list } = topCourses(), isNew = RANK[mode].isNew;
-  $('#cs-sub').textContent = RANK[mode].label + (isNew ? ' · daily learners = learners ÷ days since launch · per month = learners ÷ months since launch (courses under a month count as one month)' : '');
-  $('#t-courses').innerHTML = list.length ? `<table><thead><tr><th></th><th>Course</th><th>Domain</th>${isNew ? '<th class="r">Launched</th><th class="r">Days since launch</th><th class="r">Daily learners</th><th class="r">Per month</th>' : ''}<th class="r">Learners</th></tr></thead><tbody>${
+  $('#cs-sub').textContent = RANK[mode].label + (isNew ? ' · daily learners = learners ÷ days since launch' : '');
+  $('#t-courses').innerHTML = list.length ? `<table><thead><tr><th></th><th>Course</th><th>Domain</th>${isNew ? '<th class="r">Launched</th><th class="r">Days since launch</th><th class="r">Daily learners</th>' : ''}<th class="r">Learners</th></tr></thead><tbody>${
     list.map((c, i) => `<tr><td class="rank">${i + 1}</td><td class="t" title="${esc(c.title)}"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a><small>${esc(c.platform)}${c.provider ? ' · ' + esc(c.provider) : ''}</small></td><td class="dom">${esc(c.domain)}</td>${
-      isNew ? `<td class="r">${esc(c.launched)}</td><td class="r">${nf(c.days)}</td><td class="r">${perDayFmt(c.perDay)}</td><td class="r">${cmp(c.perMonth)}</td>` : ''}<td class="r">${nf(c.enrolments)}</td></tr>`).join('')}</tbody></table>`
+      isNew ? `<td class="r">${esc(c.launched)}</td><td class="r">${nf(c.days)}</td><td class="r">${perDayFmt(c.perDay)}</td>` : ''}<td class="r">${nf(c.enrolments)}</td></tr>`).join('')}</tbody></table>`
     : '<div class="empty">No courses for this selection.</div>';
 }
 function drawTopics() {
@@ -446,9 +446,9 @@ $('#xlsx').addEventListener('click', () => {
     ...R.topics.map(x => [x.rank, x.name, x.domain, Math.round(x.enrolments), p1(x.share), x.perCourse == null ? null : Math.round(x.perCourse), x.growth == null ? null : `${x.growth >= 0 ? '+' : ''}${Math.round(x.growth * 100)}%`])], [8, 36, 32, 16, 20, 20, 44]);
   const tc = topCourses();
   const nw = RANK[tc.mode].isNew;
-  add('Top courses', [[RANK[tc.mode].label], ['Course', 'Platform', 'Provider', 'Domain', ...(nw ? ['Launched on', 'Days since launch', 'Daily learners', 'Learners per month'] : []), 'Learners', 'Link'],
-    ...tc.list.map(x => [x.title, x.platform, x.provider, x.domain, ...(nw ? [x.launched, x.days, x.perDay == null ? null : +x.perDay.toFixed(1), x.perMonth == null ? null : Math.round(x.perMonth)] : []), x.enrolments, x.url])],
-    [60, 18, 26, 30, ...(nw ? [14, 18, 16, 18] : []), 14, 60]);
+  add('Top courses', [[RANK[tc.mode].label], ['Course', 'Platform', 'Provider', 'Domain', ...(nw ? ['Launched on', 'Days since launch', 'Daily learners'] : []), 'Learners', 'Link'],
+    ...tc.list.map(x => [x.title, x.platform, x.provider, x.domain, ...(nw ? [x.launched, x.days, x.perDay == null ? null : +x.perDay.toFixed(1)] : []), x.enrolments, x.url])],
+    [60, 18, 26, 30, ...(nw ? [14, 18, 16] : []), 14, 60]);
   XLSX.writeFile(wb, fileStem() + '.xlsx');
 });
 const resizeAll = () => Object.values(charts).forEach(c => c.resize());
