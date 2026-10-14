@@ -365,10 +365,10 @@ function drawTopics() {
   const list = q ? R.topics.filter(t => t.name.toLowerCase().includes(q) || t.domain.toLowerCase().includes(q)) : R.topics;
   const maxE = Math.max(...R.topics.map(t => t.enrolments), 1);
   $('#t-count').textContent = R.topics.length ? (q ? `${list.length} of ${R.topics.length} topics` : `${R.topics.length} topics`) : '';
-  $('#t-top').innerHTML = list.length ? `<table><thead><tr><th class="r">#</th><th>Topic</th><th>Domain</th><th class="r">Learners</th><th class="r">Share of learners</th><th class="r">Learners per course</th><th class="r">New-course trend</th></tr></thead><tbody>${
+  $('#t-top').innerHTML = list.length ? `<table><thead><tr><th class="r">#</th><th>Topic</th><th>Domain</th><th class="r">Learners</th><th class="r">Share of learners</th><th class="r">New-course trend</th></tr></thead><tbody>${
     list.map((t, i) => { const g = t.growth;
       const chip = g == null ? '<span class="chip na">–</span>' : `<span class="chip ${g >= 0 ? 'up' : 'down'}">${g >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(g * 100))}%</span>`;
-      return `<tr class="pick ${sel.t === t.k ? 'on' : ''} ${i >= 15 ? 'extra' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank r">${t.rank}</td><td class="t"><b>${esc(t.name)}</b></td><td class="dom">${esc(t.domain)}</td><td class="r bar"><i style="width:calc(${(t.enrolments / maxE * 100).toFixed(1)}% - 12px)"></i><span>${cmp(t.enrolments)}</span></td><td class="r">${pct(t.share)}</td><td class="r">${t.perCourse == null ? '–' : nf(t.perCourse)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
+      return `<tr class="pick ${sel.t === t.k ? 'on' : ''} ${i >= 15 ? 'extra' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank r">${t.rank}</td><td class="t"><b>${esc(t.name)}</b></td><td class="dom">${esc(t.domain)}</td><td class="r bar"><i style="width:calc(${(t.enrolments / maxE * 100).toFixed(1)}% - 12px)"></i><span>${cmp(t.enrolments)}</span></td><td class="r">${pct(t.share)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
     : `<div class="empty">${q ? 'No topic matches “' + esc($('#t-q').value.trim()) + '”.' : 'No topics for this selection.'}</div>`;
 }
 function draw() {
@@ -438,8 +438,8 @@ $('#xlsx').addEventListener('click', () => {
   add('Rating by platform', [['Platform', 'Average rating', 'Rated courses'], ...R.ratingPlatform.map(x => [x.name, +x.value.toFixed(2), x.rated])], [28, 16, 16]);
   add('Level mix by domain', [['Domain', ...D.levels.map(l => l + ' (%)')], ...R.levelMix.map(x => [x.name, ...x.shares.map(p1)])], [40, ...D.levels.map(() => 16)]);
   add('Platform share of domains', [['Domain', ...R.platShare.platforms.map(p => p.name + ' (%)'), 'Other platforms (%)'], ...R.platShare.rows.map(x => [x.name, ...x.shares.map(p1), p1(x.other)])], [40, ...R.platShare.platforms.map(() => 18), 20]);
-  add('Trending topics', [['Rank', 'Topic', 'Domain', 'Learners', 'Share of learners (%)', 'Learners per course', 'New-course trend (last 12 months vs the 12 before)'],
-    ...R.topics.map(x => [x.rank, x.name, x.domain, Math.round(x.enrolments), p1(x.share), x.perCourse == null ? null : Math.round(x.perCourse), x.growth == null ? null : `${x.growth >= 0 ? '+' : ''}${Math.round(x.growth * 100)}%`])], [8, 36, 32, 16, 20, 20, 44]);
+  add('Trending topics', [['Rank', 'Topic', 'Domain', 'Learners', 'Share of learners (%)', 'New-course trend (last 12 months vs the 12 before)'],
+    ...R.topics.map(x => [x.rank, x.name, x.domain, Math.round(x.enrolments), p1(x.share), x.growth == null ? null : `${x.growth >= 0 ? '+' : ''}${Math.round(x.growth * 100)}%`])], [8, 36, 32, 16, 20, 44]);
   const tc = topCourses();
   const nw = RANK[tc.mode].isNew;
   add('Top courses', [[RANK[tc.mode].label], ['Course', 'Platform', 'Provider', 'Domain', ...(nw ? ['Launched on', 'Days since launch', 'Daily learners'] : []), 'Learners', 'Link'],
