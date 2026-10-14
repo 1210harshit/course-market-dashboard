@@ -139,8 +139,7 @@ html.printing #t-top tr.extra { display: none }
       <div class="applied" id="applied" hidden></div>
     </div>
     <div class="actions">
-      <button class="btn primary" id="pdf" type="button">Download PDF</button>
-      <button class="btn ghost" id="xlsx" type="button">Download data (Excel)</button>
+      <button class="btn primary" id="xlsx" type="button">Download data (Excel)</button>
     </div>
   </section>
 
@@ -452,7 +451,6 @@ const resizeAll = () => Object.values(charts).forEach(c => c.resize());
 const toPrint = on => { document.documentElement.classList.toggle('printing', on); resizeAll(); };
 window.addEventListener('beforeprint', () => toPrint(true));
 window.addEventListener('afterprint', () => toPrint(false));
-$('#pdf').addEventListener('click', () => { const t = document.title; document.title = fileStem(); toPrint(true); setTimeout(() => { window.print(); document.title = t; }, 150); });
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resizeAll, 150); });
 
 $('#cs-rank').value = 'new3'; $('#cs-n').value = '10';   // always open on the default ranking
