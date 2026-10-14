@@ -83,6 +83,11 @@ td.dom { color: var(--slate); white-space: nowrap; max-width: 210px; overflow: h
 td.bar { position: relative; min-width: 110px }
 td.bar i { position: absolute; right: 6px; top: 5px; bottom: 5px; background: #d8e7f8; border-radius: 2px }
 td.bar span { position: relative }
+#t-top { max-height: 460px; overflow: auto; border-top: 1px solid var(--line) }
+#t-top thead th { position: sticky; top: 0; background: var(--card); z-index: 1 }
+.search { font: 13px var(--font); color: var(--text); background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; width: 220px; max-width: 100% }
+.search:focus-visible { outline: 2px solid var(--sky); outline-offset: 1px }
+.count { font-size: 11.5px; color: var(--muted); white-space: nowrap }
 .empty { color: var(--muted); font-size: 12.5px; padding: 18px 6px }
 .chip { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 1px 7px; white-space: nowrap }
 .chip.up { background: #dff3ee; color: #136e63 } .chip.down { background: #fbe7dc; color: #a64a0a } .chip.na { color: var(--muted) }
@@ -113,6 +118,8 @@ html.printing .card .sub { font-size: 11px }
 html.printing footer.src { font-size: 10.5px }
 html.printing tbody tr.on td { background: transparent; font-weight: 600 }
 html.printing .pagebreak { break-before: page }
+html.printing #t-top { max-height: none; overflow: visible; border-top: 0 }
+html.printing #t-top tr.extra { display: none }
 @media print {
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact }
   body { padding: 0; background: #fff }
@@ -157,7 +164,9 @@ html.printing .pagebreak { break-before: page }
     <article class="card"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
     <article class="card span2"><header><div><h2>Level mix by domain</h2><div class="sub">Share of each domain's courses at each level · top 10 domains by learners</div></div><button class="png" data-chart="c-lvl" data-name="Level mix by domain" type="button">PNG</button></header><div class="chart" id="c-lvl"></div></article>
     <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · top 10 domains by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
-    <article class="card span3"><header><div><h2>Trending topics by enrolment</h2><div class="sub">Top 15 topics by learners · trend = new courses in the last 12 months vs the 12 months before</div></div></header><div class="tbl" id="t-top"></div></article>
+    <article class="card span3"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
+      <div class="tools"><label for="t-q">Search <input class="search" id="t-q" type="search" placeholder="Topic or domain, e.g. Python" autocomplete="off"></label><span class="count" id="t-count"></span></div></header>
+      <div class="tbl" id="t-top"></div></article>
     <article class="card span3 pagebreak"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
       <div class="tools"><label for="cs-rank">Rank by <select id="cs-rank">
         <option value="enr">Most enrolled</option><option value="new3">Fastest-growing new (last 3 months)</option><option value="new6">Fastest-growing new (last 6 months)</option>
@@ -271,8 +280,8 @@ function calculate() {
       if (ad >= 0 && ad <= 364) a[2]++; else if (ad >= 365 && ad <= 729) a[3]++;
     }
   }
-  const topics = [...tg].filter(([, a]) => a[0] > 0).sort((a, b) => b[1][0] - a[1][0]).slice(0, 15)
-    .map(([k, a]) => ({ k, name: D.topics[k], domain: D.domains[D.topicDomain[k]], enrolments: a[0], share: allE ? a[0] / allE : null, perCourse: a[1] >= 30 ? a[0] / a[1] : null, growth: a[3] >= 40 ? a[2] / a[3] - 1 : null }));
+  const topics = [...tg].filter(([, a]) => a[0] > 0).sort((a, b) => b[1][0] - a[1][0])
+    .map(([k, a], i) => ({ k, rank: i + 1, name: D.topics[k], domain: D.domains[D.topicDomain[k]], enrolments: a[0], share: allE ? a[0] / allE : null, perCourse: a[1] >= 30 ? a[0] / a[1] : null, growth: a[3] >= 40 ? a[2] / a[3] - 1 : null }));
   const pool = D.courses.filter(rowPasses);
   return { enrolDomain, lpcDomain, ratingPlatform, length, levelMix, platShare, topics, pool };
 }
@@ -349,6 +358,17 @@ function drawCourses() {
       isNew ? `<td class="r">${esc(c.launched)}</td><td class="r">${cmp(c.perMonth)}</td>` : ''}<td class="r">${nf(c.enrolments)}</td><td class="r">${nf(c.reviews)}</td><td class="r">${c.rating == null ? '–' : c.rating.toFixed(2)}</td></tr>`).join('')}</tbody></table>`
     : '<div class="empty">No courses for this selection.</div>';
 }
+function drawTopics() {
+  const q = $('#t-q').value.trim().toLowerCase();
+  const list = q ? R.topics.filter(t => t.name.toLowerCase().includes(q) || t.domain.toLowerCase().includes(q)) : R.topics;
+  const maxE = Math.max(...R.topics.map(t => t.enrolments), 1);
+  $('#t-count').textContent = R.topics.length ? (q ? `${list.length} of ${R.topics.length} topics` : `${R.topics.length} topics`) : '';
+  $('#t-top').innerHTML = list.length ? `<table><thead><tr><th class="r">#</th><th>Topic</th><th>Domain</th><th class="r">Learners</th><th class="r">Share of learners</th><th class="r">Learners per course</th><th class="r">New-course trend</th></tr></thead><tbody>${
+    list.map((t, i) => { const g = t.growth;
+      const chip = g == null ? '<span class="chip na">–</span>' : `<span class="chip ${g >= 0 ? 'up' : 'down'}">${g >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(g * 100))}%</span>`;
+      return `<tr class="pick ${sel.t === t.k ? 'on' : ''} ${i >= 15 ? 'extra' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank r">${t.rank}</td><td class="t"><b>${esc(t.name)}</b></td><td class="dom">${esc(t.domain)}</td><td class="r bar"><i style="width:calc(${(t.enrolments / maxE * 100).toFixed(1)}% - 12px)"></i><span>${cmp(t.enrolments)}</span></td><td class="r">${pct(t.share)}</td><td class="r">${t.perCourse == null ? '–' : nf(t.perCourse)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
+    : `<div class="empty">${q ? 'No topic matches “' + esc($('#t-q').value.trim()) + '”.' : 'No topics for this selection.'}</div>`;
+}
 function draw() {
   R = calculate();
   hbar('c-enr', R.enrolDomain, cmp, '#1976d2', 'd');
@@ -359,12 +379,7 @@ function draw() {
   stacked('c-psh', R.platShare.rows.map(r => ({ ...r, shares: [...r.shares, r.other] })),
     [...R.platShare.platforms.map((p, i) => ({ k: p.k, name: p.name, color: PLAT_COLORS[i], dark: i < 2 })), { name: 'Other platforms', color: '#d5dae3' }],
     x => x.sk != null ? toggle('p', x.sk) : toggle('d', x.k));
-  const maxE = Math.max(...R.topics.map(t => t.enrolments), 1);
-  $('#t-top').innerHTML = R.topics.length ? `<table><thead><tr><th></th><th>Topic</th><th>Domain</th><th class="r">Learners</th><th class="r">Share of learners</th><th class="r">Learners per course</th><th class="r">New-course trend</th></tr></thead><tbody>${
-    R.topics.map((t, i) => { const g = t.growth;
-      const chip = g == null ? '<span class="chip na">–</span>' : `<span class="chip ${g >= 0 ? 'up' : 'down'}">${g >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(g * 100))}%</span>`;
-      return `<tr class="pick ${sel.t === t.k ? 'on' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank">${i + 1}</td><td class="t"><b>${esc(t.name)}</b></td><td class="dom">${esc(t.domain)}</td><td class="r bar"><i style="width:calc(${(t.enrolments / maxE * 100).toFixed(1)}% - 12px)"></i><span>${cmp(t.enrolments)}</span></td><td class="r">${pct(t.share)}</td><td class="r">${t.perCourse == null ? '–' : nf(t.perCourse)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
-    : '<div class="empty">No topics for this selection.</div>';
+  drawTopics();
   drawCourses();
   for (const s of document.querySelectorAll('select[data-k]')) { const v = sel[s.dataset.k]; s.value = v == null ? '' : String(v); s.classList.toggle('on', v != null); }
   const applied = Object.entries(sel).filter(([, v]) => v != null).map(([k, v]) => `${DIMS[k]}: ${nameOf(k, v)}`);
@@ -400,6 +415,7 @@ for (const s of document.querySelectorAll('select[data-k]')) s.addEventListener(
 $('#clear').addEventListener('click', () => { for (const k in sel) sel[k] = null; draw(); });
 $('#t-top').addEventListener('click', e => { const tr = e.target.closest('tr[data-t]'); if (tr) toggle('t', +tr.dataset.t); });
 $('#cs-rank').addEventListener('change', () => R && drawCourses());
+$('#t-q').addEventListener('input', () => R && drawTopics());
 $('#cs-n').addEventListener('change', () => R && drawCourses());
 
 // ---------------- downloads
@@ -422,8 +438,8 @@ $('#xlsx').addEventListener('click', () => {
   add('Rating by platform', [['Platform', 'Average rating', 'Rated courses'], ...R.ratingPlatform.map(x => [x.name, +x.value.toFixed(2), x.rated])], [28, 16, 16]);
   add('Level mix by domain', [['Domain', ...D.levels.map(l => l + ' (%)')], ...R.levelMix.map(x => [x.name, ...x.shares.map(p1)])], [40, ...D.levels.map(() => 16)]);
   add('Platform share of domains', [['Domain', ...R.platShare.platforms.map(p => p.name + ' (%)'), 'Other platforms (%)'], ...R.platShare.rows.map(x => [x.name, ...x.shares.map(p1), p1(x.other)])], [40, ...R.platShare.platforms.map(() => 18), 20]);
-  add('Trending topics', [['Topic', 'Domain', 'Learners', 'Share of learners (%)', 'Learners per course', 'New-course trend (last 12 months vs the 12 before)'],
-    ...R.topics.map(x => [x.name, x.domain, Math.round(x.enrolments), p1(x.share), x.perCourse == null ? null : Math.round(x.perCourse), x.growth == null ? null : `${x.growth >= 0 ? '+' : ''}${Math.round(x.growth * 100)}%`])], [36, 32, 16, 20, 20, 44]);
+  add('Trending topics', [['Rank', 'Topic', 'Domain', 'Learners', 'Share of learners (%)', 'Learners per course', 'New-course trend (last 12 months vs the 12 before)'],
+    ...R.topics.map(x => [x.rank, x.name, x.domain, Math.round(x.enrolments), p1(x.share), x.perCourse == null ? null : Math.round(x.perCourse), x.growth == null ? null : `${x.growth >= 0 ? '+' : ''}${Math.round(x.growth * 100)}%`])], [8, 36, 32, 16, 20, 20, 44]);
   const tc = topCourses();
   add('Top courses', [[RANK[tc.mode].label], ['Course', 'Platform', 'Provider', 'Domain', 'Launched on', 'Learners per month', 'Learners', 'Reviews', 'Rating', 'Link'],
     ...tc.list.map(x => [x.title, x.platform, x.provider, x.domain, x.launched, x.perMonth == null ? null : Math.round(x.perMonth), x.enrolments, x.reviews, x.rating, x.url])], [60, 18, 26, 30, 14, 18, 14, 12, 10, 60]);
