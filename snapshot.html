@@ -6,7 +6,7 @@
 <title>Course Market Snapshot</title>
 <style>
 /* Layout: report sheet. Navy title band, filter bar, then a 3-column grid of visuals and full-width tables.
-   Same palette and type as the Course Market Intelligence dashboard. Light only: it is a printable report (3 × A4 landscape). */
+   Same palette and type as the Course Market Intelligence dashboard. Light only: it is a printable report (4 × A4 landscape). */
 :root {
   --navy: #0f327e; --deep: #0c2253; --blue: #1976d2; --sky: #25a8d9; --teal: #1f9e8f; --orange: #e96f12;
   --canvas: #eef1f6; --card: #ffffff; --line: #dfe3ea; --text: #1d2a44; --muted: #6b7489; --soft: #f5f7fb; --sel: #fff1e6; --slate: #3d4d70;
@@ -98,7 +98,7 @@ footer.src a { color: var(--blue) }
 @media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) } .span2 { grid-column: 1 / -1 } }
 @media (max-width: 640px) { .grid { grid-template-columns: minmax(0, 1fr) } }
 
-/* print: three A4 landscape pages */
+/* print: four A4 landscape pages */
 @page { size: A4 landscape; margin: 7mm }
 html.printing body { padding: 0; background: #fff }
 html.printing .sheet { width: 1090px; max-width: none; gap: 8px }
@@ -158,16 +158,16 @@ html.printing #t-top tr.extra { display: none }
 
   <section class="grid" id="grid">
     <div class="loading" id="loading">Loading data…</div>
-    <article class="card"><header><div><h2>Enrolments by domain</h2><div class="sub">Top 10 domains by total learners</div></div><button class="png" data-chart="c-enr" data-name="Enrolments by domain" type="button">PNG</button></header><div class="chart" id="c-enr"></div></article>
-    <article class="card"><header><div><h2>Learners per course, by domain</h2><div class="sub">How many learners a course gets in each domain</div></div><button class="png" data-chart="c-lpc" data-name="Learners per course by domain" type="button">PNG</button></header><div class="chart" id="c-lpc"></div></article>
-    <article class="card"><header><div><h2>Learners per course, by course length</h2><div class="sub">NA = length not available</div></div><button class="png" data-chart="c-len" data-name="Learners per course by course length" type="button">PNG</button></header><div class="chart" id="c-len"></div></article>
-    <article class="card"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
-    <article class="card span2"><header><div><h2>Level mix by domain</h2><div class="sub">Share of each domain's courses at each level · top 10 domains by learners</div></div><button class="png" data-chart="c-lvl" data-name="Level mix by domain" type="button">PNG</button></header><div class="chart" id="c-lvl"></div></article>
-    <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · all domains, ranked by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
-    <article class="card span3 pagebreak"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
+    <article class="card"><header><div><h2>Enrolments by domain</h2><div class="sub">All domains, ranked by total learners</div></div><button class="png" data-chart="c-enr" data-name="Enrolments by domain" type="button">PNG</button></header><div class="chart" id="c-enr"></div></article>
+    <article class="card"><header><div><h2>Learners per course, by domain</h2><div class="sub">How many learners a course gets in each domain · all domains</div></div><button class="png" data-chart="c-lpc" data-name="Learners per course by domain" type="button">PNG</button></header><div class="chart" id="c-lpc"></div></article>
+    <article class="card"><header><div><h2>Level mix by domain</h2><div class="sub">Share of each domain's courses at each level · all domains</div></div><button class="png" data-chart="c-lvl" data-name="Level mix by domain" type="button">PNG</button></header><div class="chart" id="c-lvl"></div></article>
+    <article class="card pagebreak"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
+    <article class="card span2"><header><div><h2>Learners per course, by course length</h2><div class="sub">NA = length not available</div></div><button class="png" data-chart="c-len" data-name="Learners per course by course length" type="button">PNG</button></header><div class="chart" id="c-len"></div></article>
+    <article class="card span3"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
       <div class="tools"><label for="t-q">Search <input class="search" id="t-q" type="search" placeholder="Topic or domain, e.g. Python" autocomplete="off"></label><span class="count" id="t-count"></span></div></header>
       <div class="tbl" id="t-top"></div></article>
-    <article class="card span3"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
+    <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · all domains, ranked by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
+    <article class="card span3 pagebreak"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
       <div class="tools"><label for="cs-rank">Rank by <select id="cs-rank">
         <option value="enr">Most enrolled</option><option value="new3">Fastest-growing new (last 3 months)</option><option value="new6">Fastest-growing new (last 6 months)</option>
         <option value="new9">Fastest-growing new (last 9 months)</option><option value="rev">Most reviewed</option><option value="rating">Highest rated (50+ reviews)</option></select></label>
@@ -253,9 +253,9 @@ const rowPasses = r => FD.every(k => sel[k] == null || r[C_[k]] === sel[k]) && (
 function calculate() {
   const t = scan().tot, byD = scan(['d'], x => x.d), byP = scan(['p'], x => x.p);
   const dom = [...byD.groups].filter(([k]) => k !== D.OTHER);
-  const top10 = dom.filter(([, o]) => o.eS > 0).sort((a, b) => b[1].eS - a[1].eS).slice(0, 10);
+  const top10 = dom.filter(([, o]) => o.eS > 0).sort((a, b) => b[1].eS - a[1].eS);   // all domains with learners
   const enrolDomain = top10.map(([k, o]) => ({ k, name: D.domains[k], value: o.eS }));
-  const lpcDomain = dom.filter(([, o]) => o.eN >= 30).sort((a, b) => b[1].eS / b[1].eN - a[1].eS / a[1].eN).slice(0, 10).map(([k, o]) => ({ k, name: D.domains[k], value: o.eS / o.eN, courses: o.eN }));
+  const lpcDomain = dom.filter(([, o]) => o.eN >= 30).sort((a, b) => b[1].eS / b[1].eN - a[1].eS / a[1].eN).map(([k, o]) => ({ k, name: D.domains[k], value: o.eS / o.eN, courses: o.eN }));
   const ratingPlatform = [...byP.groups].filter(([, o]) => o.rN >= 30).sort((a, b) => b[1].rS / b[1].rN - a[1].rS / a[1].rN).slice(0, 10).map(([k, o]) => ({ k, name: D.platforms[k], value: o.rS / o.rN, rated: o.rN }));
   const length = D.durations.map((name, j) => ({ name, value: t.dEN[j] ? t.dE[j] / t.dEN[j] : null, courses: t.dEN[j] })).filter(x => x.courses);
   // level mix (share of courses) and platform share (share of learners) for the same top 10 domains
@@ -312,10 +312,11 @@ const TIP = { backgroundColor: '#0c2253', borderWidth: 0, textStyle: { color: '#
 const LEG = { top: 0, left: 0, itemWidth: 10, itemHeight: 10, itemGap: 10, textStyle: { color: INK, fontSize: 11 } };
 const empty = id => chart(id).setOption({ title: { text: 'No data for this selection', left: 'center', top: 'middle', textStyle: { color: MUTED, fontSize: 12, fontWeight: 400 } }, xAxis: [], yAxis: [], series: [] }, true);
 function hbar(id, items, fmt, color, dim, opts = {}) {
+  if (opts.rowH) { const el = document.getElementById(id), h = Math.max(240, items.length * opts.rowH + (opts.align ? 76 : 12)) + 'px'; if (el.style.height !== h) { el.style.height = h; chart(id).resize(); } }
   if (!items.length) return empty(id);
   const rows = items.slice().reverse();
   chart(id).setOption({
-    animation: false, grid: { left: 4, right: 52, top: 4, bottom: 4, containLabel: true },
+    animation: false, grid: { left: 4, right: 52, top: opts.align ? 50 : 4, bottom: opts.align ? 26 : 4, containLabel: true },
     tooltip: { ...TIP, trigger: 'item', formatter: p => `<b>${esc(p.name)}</b><br>${fmt(p.value)}<br><span style="opacity:.7">Click to ${sel[dim] === p.data.k ? 'clear the filter' : 'filter'}</span>` },
     xAxis: { type: 'value', show: false, ...(opts.min != null ? { min: opts.min, max: opts.max } : {}) },
     yAxis: { type: 'category', data: rows.map(x => x.name), axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11, width: 165, overflow: 'truncate', interval: 0 } },
@@ -325,11 +326,11 @@ function hbar(id, items, fmt, color, dim, opts = {}) {
   chart(id).off('click'); chart(id).on('click', p => p.data && toggle(dim, p.data.k));
 }
 function stacked(id, rows, series, onClick, rowH = 0) {   // 100% stacked horizontal bars; rows = [{k, name, shares[]}], series = [{name, color, k?}]
-  if (rowH) { const el = document.getElementById(id), h = Math.max(240, rows.length * rowH + 56) + 'px'; if (el.style.height !== h) { el.style.height = h; chart(id).resize(); } }
+  if (rowH) { const el = document.getElementById(id), h = Math.max(240, rows.length * rowH + (el.clientWidth < 600 ? 76 : 56)) + 'px'; if (el.style.height !== h) { el.style.height = h; chart(id).resize(); } }
   if (!rows.length) return empty(id);
   const rr = rows.slice().reverse();
   chart(id).setOption({
-    animation: false, legend: { ...LEG, data: series.map(s => s.name) }, grid: { left: 4, right: 12, top: 30, bottom: 4, containLabel: true },
+    animation: false, legend: { ...LEG, data: series.map(s => s.name) }, grid: { left: 4, right: 12, top: document.getElementById(id).clientWidth < 600 ? 50 : 30, bottom: 4, containLabel: true },
     tooltip: { ...TIP, trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: ps => `<b>${esc(ps[0].name)}</b><br>` + ps.filter(p => p.value > 0).map(p => `${p.marker}${esc(p.seriesName)}: ${pct(p.value)}`).join('<br>') },
     xAxis: { type: 'value', max: 1, splitNumber: 4, axisLabel: { color: MUTED, fontSize: 10, formatter: v => Math.round(v * 100) + '%' }, splitLine: { lineStyle: { color: '#e6e9ef', type: 'dashed' } } },
     yAxis: { type: 'category', data: rr.map(x => x.name), axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11, width: 165, overflow: 'truncate', interval: 0 } },
@@ -373,11 +374,11 @@ function drawTopics() {
 }
 function draw() {
   R = calculate();
-  hbar('c-enr', R.enrolDomain, cmp, '#1976d2', 'd');
-  hbar('c-lpc', R.lpcDomain, cmp, '#25a8d9', 'd');
+  hbar('c-enr', R.enrolDomain, cmp, '#1976d2', 'd', { rowH: 20, align: 1 });
+  hbar('c-lpc', R.lpcDomain, cmp, '#25a8d9', 'd', { rowH: 20, align: 1 });
   hbar('c-rat', R.ratingPlatform, v => v.toFixed(2), '#1f9e8f', 'p', { min: 3, max: 5 });
   lengthChart(R.length);
-  stacked('c-lvl', R.levelMix, D.levels.map((n, i) => ({ name: n, color: LEVEL_COLORS[i % LEVEL_COLORS.length], dark: i === 2 })), x => toggle('d', x.k));
+  stacked('c-lvl', R.levelMix, D.levels.map((n, i) => ({ name: n, color: LEVEL_COLORS[i % LEVEL_COLORS.length], dark: i === 2 })), x => toggle('d', x.k), 20);
   stacked('c-psh', R.platShare.rows.map(r => ({ ...r, shares: [...r.shares, r.other] })),
     [...R.platShare.platforms.map((p, i) => ({ k: p.k, name: p.name, color: PLAT_COLORS[i], dark: i < 2 })), { name: 'Other platforms', color: '#d5dae3' }],
     x => x.sk != null ? toggle('p', x.sk) : toggle('d', x.k), 23);
