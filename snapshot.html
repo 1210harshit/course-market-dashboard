@@ -169,7 +169,7 @@ html.printing #t-top tr.extra { display: none }
     <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · all domains, ranked by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
     <article class="card span3 pagebreak"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
       <div class="tools"><label for="cs-rank">Rank by <select id="cs-rank" autocomplete="off">
-        <option value="enr">Most enrolled</option><option value="new3">Fastest-growing new (last 3 months)</option><option value="new6">Fastest-growing new (last 6 months)</option>
+        <option value="new3">Fastest-growing new (last 3 months)</option><option value="new6">Fastest-growing new (last 6 months)</option>
         <option value="new9">Fastest-growing new (last 9 months)</option><option value="rating">Highest rated (50+ reviews)</option></select></label>
         <label for="cs-n">Show <select id="cs-n" autocomplete="off"><option>10</option><option>25</option><option>50</option></select></label></div></header>
       <div class="tbl" id="t-courses"></div></article>
@@ -292,7 +292,6 @@ function courseObj(r) {
     perMonth: r[C_.vel], days: r[C_.age], launched: r[C_.age] == null ? null : new Date(asOf - r[C_.age] * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) };
 }
 const RANK = {
-  enr: { label: 'Most enrolled', ok: r => r[C_.enr] > 0, v: r => r[C_.enr] },
   new3: { label: 'Fastest-growing new courses (last 3 months)', ok: r => r[C_.age] != null && r[C_.age] <= 90 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
   new6: { label: 'Fastest-growing new courses (last 6 months)', ok: r => r[C_.age] != null && r[C_.age] <= 182 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
   new9: { label: 'Fastest-growing new courses (last 9 months)', ok: r => r[C_.age] != null && r[C_.age] <= 273 && r[C_.vel] != null, v: r => r[C_.vel], isNew: 1 },
@@ -456,7 +455,7 @@ window.addEventListener('afterprint', () => toPrint(false));
 $('#pdf').addEventListener('click', () => { const t = document.title; document.title = fileStem(); toPrint(true); setTimeout(() => { window.print(); document.title = t; }, 150); });
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resizeAll, 150); });
 
-$('#cs-rank').value = 'enr'; $('#cs-n').value = '10';   // always open on the default ranking
+$('#cs-rank').value = 'new3'; $('#cs-n').value = '10';   // always open on the default ranking
 showWeek(WEEKS[0].id);
 </script>
 </body>
