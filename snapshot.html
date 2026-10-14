@@ -163,11 +163,11 @@ html.printing #t-top tr.extra { display: none }
     <article class="card"><header><div><h2>Learners per course, by course length</h2><div class="sub">NA = length not available</div></div><button class="png" data-chart="c-len" data-name="Learners per course by course length" type="button">PNG</button></header><div class="chart" id="c-len"></div></article>
     <article class="card"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
     <article class="card span2"><header><div><h2>Level mix by domain</h2><div class="sub">Share of each domain's courses at each level · top 10 domains by learners</div></div><button class="png" data-chart="c-lvl" data-name="Level mix by domain" type="button">PNG</button></header><div class="chart" id="c-lvl"></div></article>
-    <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · top 10 domains by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
-    <article class="card span3"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
+    <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · all domains, ranked by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
+    <article class="card span3 pagebreak"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
       <div class="tools"><label for="t-q">Search <input class="search" id="t-q" type="search" placeholder="Topic or domain, e.g. Python" autocomplete="off"></label><span class="count" id="t-count"></span></div></header>
       <div class="tbl" id="t-top"></div></article>
-    <article class="card span3 pagebreak"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
+    <article class="card span3"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
       <div class="tools"><label for="cs-rank">Rank by <select id="cs-rank">
         <option value="enr">Most enrolled</option><option value="new3">Fastest-growing new (last 3 months)</option><option value="new6">Fastest-growing new (last 6 months)</option>
         <option value="new9">Fastest-growing new (last 9 months)</option><option value="rev">Most reviewed</option><option value="rating">Highest rated (50+ reviews)</option></select></label>
@@ -262,9 +262,10 @@ function calculate() {
   const doms = top10.map(([k]) => k);
   const dl = scan(['d', 'l'], x => x.d * 100 + x.l).groups, dp = scan(['d', 'p'], x => x.d * 1000 + x.p).groups;
   const levelMix = doms.map(d => { const n = D.levels.map((_, l) => dl.get(d * 100 + l)?.n || 0), s = n.reduce((a, b) => a + b, 0) || 1; return { k: d, name: D.domains[d], shares: n.map(v => v / s) }; });
-  const platTot = new Map(); for (const [key, o] of dp) { if (doms.includes(Math.floor(key / 1000))) platTot.set(key % 1000, (platTot.get(key % 1000) || 0) + o.eS); }
+  const allDoms = dom.filter(([, o]) => o.eS > 0).sort((a, b) => b[1].eS - a[1].eS).map(([k]) => k);
+  const platTot = new Map(); for (const [key, o] of dp) { if (allDoms.includes(Math.floor(key / 1000))) platTot.set(key % 1000, (platTot.get(key % 1000) || 0) + o.eS); }
   const shown = [...platTot].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 7).map(([p]) => p);
-  const platShare = { platforms: shown.map(p => ({ k: p, name: D.platforms[p] })), rows: doms.map(d => {
+  const platShare = { platforms: shown.map(p => ({ k: p, name: D.platforms[p] })), rows: allDoms.map(d => {
     const tot = D.platforms.reduce((a, _, p) => a + (dp.get(d * 1000 + p)?.eS || 0), 0) || 1;
     const sh = shown.map(p => (dp.get(d * 1000 + p)?.eS || 0) / tot);
     return { k: d, name: D.domains[d], shares: sh, other: Math.max(0, 1 - sh.reduce((a, b) => a + b, 0)) }; }) };
@@ -323,7 +324,8 @@ function hbar(id, items, fmt, color, dim, opts = {}) {
   }, true);
   chart(id).off('click'); chart(id).on('click', p => p.data && toggle(dim, p.data.k));
 }
-function stacked(id, rows, series, onClick) {   // 100% stacked horizontal bars; rows = [{k, name, shares[]}], series = [{name, color, k?}]
+function stacked(id, rows, series, onClick, rowH = 0) {   // 100% stacked horizontal bars; rows = [{k, name, shares[]}], series = [{name, color, k?}]
+  if (rowH) { const el = document.getElementById(id), h = Math.max(240, rows.length * rowH + 56) + 'px'; if (el.style.height !== h) { el.style.height = h; chart(id).resize(); } }
   if (!rows.length) return empty(id);
   const rr = rows.slice().reverse();
   chart(id).setOption({
@@ -378,7 +380,7 @@ function draw() {
   stacked('c-lvl', R.levelMix, D.levels.map((n, i) => ({ name: n, color: LEVEL_COLORS[i % LEVEL_COLORS.length], dark: i === 2 })), x => toggle('d', x.k));
   stacked('c-psh', R.platShare.rows.map(r => ({ ...r, shares: [...r.shares, r.other] })),
     [...R.platShare.platforms.map((p, i) => ({ k: p.k, name: p.name, color: PLAT_COLORS[i], dark: i < 2 })), { name: 'Other platforms', color: '#d5dae3' }],
-    x => x.sk != null ? toggle('p', x.sk) : toggle('d', x.k));
+    x => x.sk != null ? toggle('p', x.sk) : toggle('d', x.k), 23);
   drawTopics();
   drawCourses();
   for (const s of document.querySelectorAll('select[data-k]')) { const v = sel[s.dataset.k]; s.value = v == null ? '' : String(v); s.classList.toggle('on', v != null); }
