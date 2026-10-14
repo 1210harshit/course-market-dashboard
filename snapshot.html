@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Course Market Insights</title>
+<title>Course Demand &amp; Trends</title>
 <style>
 /* Layout: report sheet. Navy title band, filter bar, then a 3-column grid of visuals and full-width tables.
    Same palette and type as the Course Market Intelligence dashboard. Light only: it is a printable report (4 × A4 landscape). */
@@ -134,7 +134,7 @@ html.printing #t-top tr.extra { display: none }
 <main class="sheet" id="sheet">
   <section class="band">
     <div class="name">
-      <h1>Course Market Insights</h1>
+      <h1>Course Demand &amp; Trends</h1>
       <div class="meta" id="meta">Loading the latest week…</div>
       <div class="applied" id="applied" hidden></div>
     </div>
@@ -419,7 +419,7 @@ $('#t-q').addEventListener('input', () => R && drawTopics());
 $('#cs-n').addEventListener('change', () => R && drawCourses());
 
 // ---------------- downloads
-const fileStem = () => `Course Market Insights - ${D.weekLabel}` + (Object.values(sel).some(v => v != null) ? ' (filtered)' : '');
+const fileStem = () => `Course Demand & Trends - ${D.weekLabel}` + (Object.values(sel).some(v => v != null) ? ' (filtered)' : '');
 document.querySelectorAll('.png').forEach(b => b.addEventListener('click', () => {
   const a = document.createElement('a');
   a.href = charts[b.dataset.chart].getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' });
@@ -430,7 +430,7 @@ $('#xlsx').addEventListener('click', () => {
   const wb = XLSX.utils.book_new();
   const add = (name, rows, widths) => { const ws = XLSX.utils.aoa_to_sheet(rows); ws['!cols'] = widths.map(w => ({ wch: w })); XLSX.utils.book_append_sheet(wb, ws, name); };
   const p1 = v => v == null ? null : +(v * 100).toFixed(1);
-  add('Summary', [['Course Market Insights'], [D.weekLabel], [], ['Filter', 'Value'], ...Object.entries(sel).map(([k, v]) => [DIMS[k], v == null ? 'All' : nameOf(k, v)]), [],
+  add('Summary', [['Course Demand & Trends'], [D.weekLabel], [], ['Filter', 'Value'], ...Object.entries(sel).map(([k, v]) => [DIMS[k], v == null ? 'All' : nameOf(k, v)]), [],
     ['Source: Course Market Data workbook (public course catalogues). Learners = lifetime enrolments reported by each platform.']], [24, 40]);
   add('Enrolments by domain', [['Domain', 'Enrolments'], ...R.enrolDomain.map(x => [x.name, Math.round(x.value)])], [40, 16]);
   add('Learners per course - domain', [['Domain', 'Learners per course', 'Courses reporting enrolments'], ...R.lpcDomain.map(x => [x.name, Math.round(x.value), x.courses])], [40, 20, 28]);
