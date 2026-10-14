@@ -158,13 +158,12 @@ html.printing .pagebreak { break-before: page }
     <article class="card span2"><header><div><h2>Level mix by domain</h2><div class="sub">Share of each domain's courses at each level · top 10 domains by learners</div></div><button class="png" data-chart="c-lvl" data-name="Level mix by domain" type="button">PNG</button></header><div class="chart" id="c-lvl"></div></article>
     <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · top 10 domains by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
     <article class="card span3"><header><div><h2>Trending topics by enrolment</h2><div class="sub">Top 15 topics by learners · trend = new courses in the last 12 months vs the 12 months before</div></div></header><div class="tbl" id="t-top"></div></article>
-    <article class="card span2 pagebreak"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
+    <article class="card span3 pagebreak"><header><div><h2>Top courses</h2><div class="sub" id="cs-sub"></div></div>
       <div class="tools"><label for="cs-rank">Rank by <select id="cs-rank">
         <option value="enr">Most enrolled</option><option value="new3">Fastest-growing new (last 3 months)</option><option value="new6">Fastest-growing new (last 6 months)</option>
         <option value="new9">Fastest-growing new (last 9 months)</option><option value="rev">Most reviewed</option><option value="rating">Highest rated (50+ reviews)</option></select></label>
         <label for="cs-n">Show <select id="cs-n"><option>10</option><option>25</option><option>50</option></select></label></div></header>
       <div class="tbl" id="t-courses"></div></article>
-    <article class="card"><header><div><h2>Fastest-growing new courses</h2><div class="sub">Launched in the last 3 months · learners per month</div></div></header><div class="tbl" id="t-new"></div></article>
   </section>
 
   <footer class="src">
@@ -275,8 +274,7 @@ function calculate() {
   const topics = [...tg].filter(([, a]) => a[0] > 0).sort((a, b) => b[1][0] - a[1][0]).slice(0, 15)
     .map(([k, a]) => ({ k, name: D.topics[k], domain: D.domains[D.topicDomain[k]], enrolments: a[0], share: allE ? a[0] / allE : null, perCourse: a[1] >= 30 ? a[0] / a[1] : null, growth: a[3] >= 40 ? a[2] / a[3] - 1 : null }));
   const pool = D.courses.filter(rowPasses);
-  const fastNew = pool.filter(r => r[C_.age] != null && r[C_.age] <= 90 && r[C_.vel] != null).sort((a, b) => b[C_.vel] - a[C_.vel]).slice(0, 10).map(courseObj);
-  return { enrolDomain, lpcDomain, ratingPlatform, length, levelMix, platShare, topics, pool, fastNew };
+  return { enrolDomain, lpcDomain, ratingPlatform, length, levelMix, platShare, topics, pool };
 }
 function courseObj(r) {
   const asOf = Date.parse(D.asOfISO);
@@ -368,9 +366,6 @@ function draw() {
       return `<tr class="pick ${sel.t === t.k ? 'on' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank">${i + 1}</td><td class="t"><b>${esc(t.name)}</b></td><td class="dom">${esc(t.domain)}</td><td class="r bar"><i style="width:calc(${(t.enrolments / maxE * 100).toFixed(1)}% - 12px)"></i><span>${cmp(t.enrolments)}</span></td><td class="r">${pct(t.share)}</td><td class="r">${t.perCourse == null ? '–' : nf(t.perCourse)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
     : '<div class="empty">No topics for this selection.</div>';
   drawCourses();
-  $('#t-new').innerHTML = R.fastNew.length ? `<table><thead><tr><th></th><th>Course</th><th class="r">Per month</th></tr></thead><tbody>${
-    R.fastNew.map((c, i) => `<tr><td class="rank">${i + 1}</td><td class="t" title="${esc(c.title)}"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a><small>${esc(c.platform)} · launched ${esc(c.launched)}</small></td><td class="r">${cmp(c.perMonth)}</td></tr>`).join('')}</tbody></table>`
-    : '<div class="empty">No courses launched in the last 3 months for this selection.</div>';
   for (const s of document.querySelectorAll('select[data-k]')) { const v = sel[s.dataset.k]; s.value = v == null ? '' : String(v); s.classList.toggle('on', v != null); }
   const applied = Object.entries(sel).filter(([, v]) => v != null).map(([k, v]) => `${DIMS[k]}: ${nameOf(k, v)}`);
   $('#applied').hidden = !applied.length; $('#applied').textContent = applied.length ? 'Filtered by ' + applied.join(' · ') : '';
@@ -432,8 +427,6 @@ $('#xlsx').addEventListener('click', () => {
   const tc = topCourses();
   add('Top courses', [[RANK[tc.mode].label], ['Course', 'Platform', 'Provider', 'Domain', 'Launched on', 'Learners per month', 'Learners', 'Reviews', 'Rating', 'Link'],
     ...tc.list.map(x => [x.title, x.platform, x.provider, x.domain, x.launched, x.perMonth == null ? null : Math.round(x.perMonth), x.enrolments, x.reviews, x.rating, x.url])], [60, 18, 26, 30, 14, 18, 14, 12, 10, 60]);
-  add('Fastest-growing new courses', [['Course', 'Platform', 'Domain', 'Launched on', 'Learners per month', 'Learners', 'Link'],
-    ...R.fastNew.map(x => [x.title, x.platform, x.domain, x.launched, Math.round(x.perMonth), x.enrolments, x.url])], [60, 18, 30, 14, 18, 14, 60]);
   XLSX.writeFile(wb, fileStem() + '.xlsx');
 });
 const resizeAll = () => Object.values(charts).forEach(c => c.resize());
