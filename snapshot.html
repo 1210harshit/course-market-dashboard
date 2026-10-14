@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Course Market Snapshot</title>
+<style>
+/* Layout: one A4-landscape sheet. Navy title band, a row of 4 headline figures, then a 3 × 2 grid of visuals.
+   Same palette and type as the Course Market Intelligence dashboard. Light only: it is a printable report. */
+:root {
+  --navy: #0f327e; --deep: #0c2253; --blue: #1976d2; --sky: #25a8d9; --teal: #1f9e8f; --orange: #e96f12; --red: #c53f3f;
+  --canvas: #eef1f6; --card: #ffffff; --line: #dfe3ea; --text: #1d2a44; --muted: #6b7489; --soft: #f5f7fb;
+  --font: "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box }
+html, body { margin: 0 }
+body { background: var(--canvas); color: var(--text); font: 14px/1.45 var(--font); padding-inline: 16px; padding-block: 16px 24px }
+.sheet { max-width: 1280px; margin: 0 auto; display: grid; gap: 12px }
+
+/* title band */
+.band { background: var(--navy); color: #fff; border-radius: 6px; padding: 14px 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px }
+.band .name { display: grid; gap: 2px; min-width: 0; flex: 1 1 320px }
+.band h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: .2px; text-wrap: balance }
+.band .meta { font-size: 13px; color: #c9d6f2 }
+.band .meta b { color: #fff; font-weight: 600 }
+.actions { display: flex; gap: 8px; flex-wrap: wrap }
+.btn { font: 600 13px var(--font); border-radius: 4px; padding: 8px 14px; cursor: pointer; text-decoration: none; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap }
+.btn.primary { background: var(--orange); color: #fff }
+.btn.primary:hover { background: #d4620c }
+.btn.ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.5) }
+.btn.ghost:hover { background: rgba(255,255,255,.12) }
+.btn:focus-visible, .png:focus-visible, a:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px }
+
+/* headline figures */
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px }
+.kpi { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; border-top: 3px solid var(--blue) }
+.kpi:first-child { border-top-color: var(--orange) }
+.kpi .v { font-size: 26px; font-weight: 700; color: var(--navy); line-height: 1.15; font-variant-numeric: tabular-nums }
+.kpi .l { font-size: 12px; color: var(--muted) }
+
+/* visuals */
+.grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px 8px; display: flex; flex-direction: column; min-width: 0 }
+.card header { display: flex; align-items: flex-start; gap: 8px }
+.card header > div { flex: 1; min-width: 0 }
+.card h2 { margin: 0; font-size: 14px; font-weight: 600; color: var(--text) }
+.card .sub { font-size: 12px; color: var(--muted); margin-top: 1px }
+.png { font: 600 11px var(--font); color: var(--blue); background: var(--soft); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; cursor: pointer; white-space: nowrap }
+.png:hover { background: #e6eefb }
+.chart { height: 270px; width: 100%; margin-top: 4px }
+
+/* compact tables */
+.tbl { margin-top: 6px; overflow-x: auto }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums }
+th { text-align: left; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; padding: 4px 6px; border-bottom: 1px solid var(--line) }
+td { padding: 4.5px 6px; border-bottom: 1px solid #eef0f4; vertical-align: top }
+tr:last-child td { border-bottom: 0 }
+td.r, th.r { text-align: right }
+td.rank { color: var(--muted); width: 22px }
+td.t { max-width: 0; width: 60%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+td.t a { color: var(--text); text-decoration: none }
+td.t a:hover { color: var(--blue); text-decoration: underline }
+td.t small { display: block; color: var(--muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis }
+.chip { display: inline-block; font-size: 11px; font-weight: 600; border-radius: 10px; padding: 1px 7px; white-space: nowrap }
+.chip.up { background: #dff3ee; color: #136e63 } .chip.down { background: #fbe7dc; color: #a64a0a } .chip.na { color: var(--muted) }
+
+footer.src { font-size: 11.5px; color: var(--muted); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding-inline: 2px }
+
+@media (max-width: 1000px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+@media (max-width: 640px) { .grid, .kpis { grid-template-columns: minmax(0, 1fr) } .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) } .kpi .v { font-size: 22px } }
+
+/* print: one A4 landscape page */
+@page { size: A4 landscape; margin: 7mm }
+html.printing body { padding: 0; background: #fff }
+html.printing .sheet { width: 1090px; max-width: none; gap: 8px }
+html.printing .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
+html.printing .kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px }
+html.printing .chart { height: 190px }
+html.printing .actions, html.printing .png { display: none }
+html.printing .band { padding: 10px 14px }
+html.printing .kpi { padding: 6px 12px }
+html.printing .kpi .v { font-size: 22px }
+html.printing td { padding: 2px 5px; font-size: 11.5px; line-height: 1.3 }
+html.printing .chip { padding: 0 6px; font-size: 10.5px }
+html.printing .tbl { margin-top: 3px }
+html.printing th { padding: 3px 5px }
+html.printing td.t small { display: inline; margin-left: 6px }
+html.printing .card { padding: 8px 10px 6px }
+html.printing .card .sub { font-size: 11px }
+html.printing footer.src { font-size: 10.5px }
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact }
+  body { padding: 0; background: #fff }
+  .actions, .png { display: none }
+  .card, .kpi, .band { break-inside: avoid }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important } }
+</style>
+</head>
+<body>
+<main class="sheet" id="sheet">
+  <section class="band">
+    <div class="name">
+      <h1>Course Market Snapshot</h1>
+      <div class="meta" id="meta"></div>
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="pdf" type="button">Download PDF</button>
+      <a class="btn ghost" href="snapshot-data.xlsx" download="Course Market Snapshot - data.xlsx">Download data (Excel)</a>
+    </div>
+  </section>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="grid">
+    <article class="card"><header><div><h2>Enrolments by domain</h2><div class="sub">Top 10 domains by total learners</div></div><button class="png" data-chart="c-enr" data-name="Enrolments by domain" type="button">PNG</button></header><div class="chart" id="c-enr"></div></article>
+    <article class="card"><header><div><h2>Learners per course, by domain</h2><div class="sub">How many learners a course gets in each domain</div></div><button class="png" data-chart="c-lpc" data-name="Learners per course by domain" type="button">PNG</button></header><div class="chart" id="c-lpc"></div></article>
+    <article class="card"><header><div><h2>Learners per course, by course length</h2><div class="sub">NA = length not available</div></div><button class="png" data-chart="c-len" data-name="Learners per course by course length" type="button">PNG</button></header><div class="chart" id="c-len"></div></article>
+    <article class="card"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
+    <article class="card"><header><div><h2>Trending topics</h2><div class="sub">Top 10 by learners · trend = new courses this year vs last</div></div></header><div class="tbl" id="t-top"></div></article>
+    <article class="card"><header><div><h2>Fastest-growing new courses</h2><div class="sub">Launched in the last 3 months · learners per month</div></div></header><div class="tbl" id="t-new"></div></article>
+  </section>
+
+  <footer class="src">
+    <span id="src"></span>
+    <span>Full interactive dashboard: <a href="./">Course Market Intelligence</a></span>
+  </footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+<script>
+const S = {"week": "Week 2 · Oct 2026", "asOf": "9 Oct 2026", "kpi": {"platforms": 36, "enrolments": 1254041290, "rating": 4.399553649680731, "launches": 747}, "enrolDomain": [{"name": "Programming & Software Dev", "value": 142513893.0}, {"name": "Data Science & Analytics", "value": 122046624.0}, {"name": "Design & Creative", "value": 87036636.0}, {"name": "AI & Machine Learning", "value": 80008824.0}, {"name": "Web Development", "value": 77184116.0}, {"name": "Business & Strategy", "value": 72048767.0}, {"name": "Personal Development & Communication", "value": 68358422.0}, {"name": "Marketing & Sales", "value": 59324615.0}, {"name": "Humanities & Social Sciences", "value": 54841650.0}, {"name": "Science, Engineering & Math", "value": 53762285.0}], "lpcDomain": [{"name": "Data Science & Analytics", "value": 11192.830520909758, "courses": 10904.0}, {"name": "Programming & Software Dev", "value": 9709.353658536585, "courses": 14678.0}, {"name": "Languages", "value": 9200.131648701185, "courses": 5659.0}, {"name": "Web Development", "value": 8962.391546679053, "courses": 8612.0}, {"name": "Humanities & Social Sciences", "value": 8319.425060679612, "courses": 6592.0}, {"name": "Project & Product Management", "value": 7600.470746469401, "courses": 2974.0}, {"name": "Office & Productivity Tools", "value": 6736.095163806553, "courses": 5128.0}, {"name": "Cybersecurity", "value": 5762.766263115415, "courses": 6195.0}, {"name": "Leadership & Management", "value": 5716.00629590766, "courses": 2859.0}, {"name": "Marketing & Sales", "value": 5415.794686872376, "courses": 10954.0}], "topics": [{"name": "Python", "domain": "Programming & Software Dev", "enrolments": 129923979.0, "perCourse": 22737.833216660834, "growth": 0.2515500442869796}, {"name": "Data Analysis", "domain": "Data Science & Analytics", "enrolments": 118461949.0, "perCourse": 19085.218140808764, "growth": 0.7721518987341771}, {"name": "Communication Skills", "domain": "Personal Development & Communication", "enrolments": 86995979.0, "perCourse": 12836.945403570902, "growth": 0.6099261689909763}, {"name": "Artificial Intelligence", "domain": "AI & Machine Learning", "enrolments": 73592207.0, "perCourse": 5660.939, "growth": 1.0907602339181288}, {"name": "Critical Thinking & Problem Solving", "domain": "Personal Development & Communication", "enrolments": 71587571.0, "perCourse": 17589.083783783783, "growth": 1.0232558139534884}, {"name": "Data Science", "domain": "Data Science & Analytics", "enrolments": 69058727.0, "perCourse": 32255.360579168613, "growth": 0.1092896174863387}, {"name": "Algorithms & Data Structures", "domain": "Programming & Software Dev", "enrolments": 58947837.0, "perCourse": 24602.603088480802, "growth": 0.3594771241830066}, {"name": "Excel", "domain": "Office & Productivity Tools", "enrolments": 54422691.0, "perCourse": 12496.59954075775, "growth": 0.7349869451697129}, {"name": "Writing & Grammar", "domain": "Humanities & Social Sciences", "enrolments": 53707076.0, "perCourse": 15667.175029171529, "growth": 0.27233115468409586}, {"name": "Marketing", "domain": "Marketing & Sales", "enrolments": 51763797.0, "perCourse": 7874.018405841192, "growth": 1.0709677419354837}], "length": [{"name": "Under 1 hr", "value": 2176.5029437036565, "courses": 31423.0}, {"name": "1–2 hrs", "value": 2750.2931464236576, "courses": 50149.0}, {"name": "2–5 hrs", "value": 3922.763583197082, "courses": 63608.0}, {"name": "5–10 hrs", "value": 5292.1220110012255, "courses": 35087.0}, {"name": "10–20 hrs", "value": 13068.283112229663, "courses": 23443.0}, {"name": "20+ hrs", "value": 17289.970687418936, "courses": 15420.0}, {"name": "NA", "value": 1389.3643996346518, "courses": 28466.0}], "ratingPlatform": [{"name": "Domestika", "value": 4.89624286143672, "rated": 3327.0}, {"name": "Treehouse", "value": 4.834006734006733, "rated": 297.0}, {"name": "DataCamp", "value": 4.820364050056887, "rated": 879.0}, {"name": "365 Data Science", "value": 4.783464566929134, "rated": 127.0}, {"name": "CreativeLive", "value": 4.762803234501346, "rated": 742.0}, {"name": "FutureLearn", "value": 4.64169921875, "rated": 1024.0}, {"name": "Udacity", "value": 4.625663716814158, "rated": 226.0}, {"name": "Coursera", "value": 4.617494972708994, "rated": 10443.0}, {"name": "Educative", "value": 4.604067796610168, "rated": 295.0}, {"name": "Skillshare", "value": 4.52045021645022, "rated": 5775.0}], "fastNew": [{"title": "AI for App Deployment", "url": "https://www.coursera.org/learn/google-ai-for-app-deployment", "platform": "Coursera", "domain": "AI & Machine Learning", "launched": "11 Aug 2026", "perMonth": 28808.1, "enrolments": 55837}, {"title": "Global MOOC on the Ethics of AI", "url": "https://www.coursera.org/learn/global-mooc-on-the-ethics-of-ai", "platform": "Coursera", "domain": "AI & Machine Learning", "launched": "17 Jul 2026", "perMonth": 14518.1, "enrolments": 40063}, {"title": "Claude Certified Associate - Foundations Practice Exam Pack", "url": "https://www.udemy.com/course/claude-certified-associate-foundations-practice-exam-pack/", "platform": "Udemy", "domain": "AI & Machine Learning", "launched": "15 Jul 2026", "perMonth": 7536.0, "enrolments": 21291}, {"title": "Agentic AI", "url": "https://www.coursera.org/learn/dlai-agentic-ai", "platform": "Coursera", "domain": "AI & Machine Learning", "launched": "14 Sep 2026", "perMonth": 4604.0, "enrolments": 4604}, {"title": "AI Agent Engineering: Build Production-Ready AI Agents", "url": "https://www.udemy.com/course/ai-agent-engineering/", "platform": "Udemy", "domain": "Science, Engineering & Math", "launched": "05 Sep 2026", "perMonth": 4167.6, "enrolments": 4655}, {"title": "[NEW] The Ultimate Claude Certified Associate Cert. Training", "url": "https://www.udemy.com/course/claude-certified-associate-ccao-f-training/", "platform": "Udemy", "domain": "AI & Machine Learning", "launched": "25 Jul 2026", "perMonth": 4159.5, "enrolments": 10385}, {"title": "Claude Certified Developer - Foundations (CCDV-F)-Exam Prep", "url": "https://www.udemy.com/course/ccdv-f-exam-prep/", "platform": "Udemy", "domain": "AI & Machine Learning", "launched": "09 Aug 2026", "perMonth": 3887.3, "enrolments": 7790}, {"title": "Claude Cowork, Skills and Plugins for Workflow Automation", "url": "https://www.coursera.org/learn/claude-cowork-skills-plugins-workflow-automation", "platform": "Coursera", "domain": "AI & Machine Learning", "launched": "31 Aug 2026", "perMonth": 3247.7, "enrolments": 4161}, {"title": "Claude Certified Architect Foundations: Complete Course", "url": "https://www.udemy.com/course/claude-certified-architect-foundations-complete-course/", "platform": "Udemy", "domain": "AI & Machine Learning", "launched": "14 Jul 2026", "perMonth": 3049.9, "enrolments": 8717}, {"title": "Claude Certified Developer - Foundations Practice Exam Pack", "url": "https://www.udemy.com/course/claude-certified-developer-foundations-practice-exam-pack/", "platform": "Udemy", "domain": "AI & Machine Learning", "launched": "15 Jul 2026", "perMonth": 2937.8, "enrolments": 8300}]};
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const nf = v => v == null ? '–' : Math.round(v).toLocaleString('en-US');
+const cmp = v => { if (v == null) return '–'; const a = Math.abs(v); for (const [d, s] of [[1e9, 'B'], [1e6, 'M'], [1e3, 'K']]) if (a >= d) return (v / d).toFixed(a >= d * 100 ? 0 : a >= d * 10 ? 1 : 2).replace(/\.0+$/, '') + s; return String(Math.round(v)); };
+
+$('#meta').innerHTML = `<b>${esc(S.week)}</b> · data as of ${esc(S.asOf)} · ${S.kpi.platforms} platforms`;
+$('#src').textContent = `Source: Course Market Data workbook (public course catalogues), ${S.week}. Learners = lifetime enrolments reported by each platform; some platforms do not publish them.`;
+$('#kpis').innerHTML = [[cmp(S.kpi.enrolments), 'Enrolments'], [S.kpi.rating.toFixed(2), 'Average rating'],
+  [S.kpi.launches == null ? '–' : nf(S.kpi.launches), 'New courses launched this week'], [S.kpi.platforms, 'Platforms']]
+  .map(([v, l]) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+// ---------------- charts
+const INK = '#1d2a44', MUTED = '#6b7489', LINE = '#dfe3ea';
+const charts = {};
+const make = id => (charts[id] = echarts.init(document.getElementById(id), null, { renderer: 'canvas', devicePixelRatio: Math.max(2, window.devicePixelRatio || 1) }));
+const TIP = { backgroundColor: '#0c2253', borderWidth: 0, textStyle: { color: '#fff', fontSize: 12 } };
+function hbar(id, items, fmt, color, opts = {}) {
+  const rows = items.slice().reverse();
+  make(id).setOption({
+    animation: false, grid: { left: 4, right: 52, top: 4, bottom: 4, containLabel: true },
+    tooltip: { ...TIP, trigger: 'item', formatter: p => `<b>${esc(p.name)}</b><br>${fmt(p.value)}` },
+    xAxis: { type: 'value', show: false, ...(opts.min != null ? { min: opts.min, max: opts.max } : {}) },
+    yAxis: { type: 'category', data: rows.map(x => x.name), axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } },
+      axisLabel: { color: INK, fontSize: 11, width: 165, overflow: 'truncate', interval: 0 } },
+    series: [{ type: 'bar', data: rows.map(x => x.value), barMaxWidth: 14, itemStyle: { color, borderRadius: [0, 2, 2, 0] },
+      label: { show: true, position: 'right', color: INK, fontSize: 11, fontWeight: 600, formatter: p => fmt(p.value) } }]
+  });
+}
+hbar('c-enr', S.enrolDomain, cmp, '#1976d2');
+hbar('c-lpc', S.lpcDomain, cmp, '#25a8d9');
+hbar('c-rat', S.ratingPlatform, v => v.toFixed(2), '#1f9e8f', { min: 3, max: 5 });
+{ const L = S.length, last = L.length - 1;
+  make('c-len').setOption({
+    animation: false, grid: { left: 4, right: 4, top: 22, bottom: 4, containLabel: true },
+    tooltip: { ...TIP, trigger: 'axis', axisPointer: { type: 'shadow' }, formatter: p => { const x = L[p[0].dataIndex]; return `<b>${esc(x.name)}</b><br>${nf(x.value)} learners per course<br>${nf(x.courses)} courses`; } },
+    xAxis: { type: 'category', data: L.map(x => x.name.replace(/^Under 1 hr$/, '<1h').replace(' hrs', 'h').replace(' hr', 'h')), axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11, interval: 0 } },
+    yAxis: { type: 'value', splitNumber: 3, axisLabel: { color: MUTED, fontSize: 10, formatter: cmp }, splitLine: { lineStyle: { color: '#e6e9ef', type: 'dashed' } } },
+    series: [{ type: 'bar', barMaxWidth: 34, data: L.map((x, i) => ({ value: x.value, itemStyle: { color: i === last && x.name === 'NA' ? '#c5ccd8' : ['#9ec3ee', '#7fb0e6', '#5b97db', '#3b7bcc', '#1f5db4', '#0f327e'][Math.min(i, 5)], borderRadius: [3, 3, 0, 0] } })),
+      label: { show: true, position: 'top', color: INK, fontSize: 11, fontWeight: 600, formatter: p => cmp(p.value) } }]
+  });
+}
+
+// ---------------- tables
+$('#t-top').innerHTML = `<table><thead><tr><th></th><th>Topic</th><th class="r">Learners</th><th class="r">Trend</th></tr></thead><tbody>${
+  S.topics.map((t, i) => { const g = t.growth;
+    const chip = g == null ? '<span class="chip na">–</span>' : `<span class="chip ${g >= 0 ? 'up' : 'down'}">${g >= 0 ? '▲' : '▼'} ${Math.abs(Math.round(g * 100))}%</span>`;
+    return `<tr><td class="rank">${i + 1}</td><td class="t" title="${esc(t.name)}">${esc(t.name)}<small>${esc(t.domain)}</small></td><td class="r">${cmp(t.enrolments)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`;
+$('#t-new').innerHTML = `<table><thead><tr><th></th><th>Course</th><th class="r">Per month</th></tr></thead><tbody>${
+  S.fastNew.map((c, i) => `<tr><td class="rank">${i + 1}</td><td class="t" title="${esc(c.title)}"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.title)}</a><small>${esc(c.platform)} · launched ${esc(c.launched)}</small></td><td class="r">${cmp(c.perMonth)}</td></tr>`).join('')}</tbody></table>`;
+
+// ---------------- downloads
+document.querySelectorAll('.png').forEach(b => b.addEventListener('click', () => {
+  const url = charts[b.dataset.chart].getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' });
+  const a = document.createElement('a'); a.href = url; a.download = `${b.dataset.name} - ${S.week}.png`; document.body.appendChild(a); a.click(); a.remove();
+}));
+const resizeAll = () => Object.values(charts).forEach(c => c.resize());
+const toPrint = on => { document.documentElement.classList.toggle('printing', on); resizeAll(); };
+window.addEventListener('beforeprint', () => toPrint(true));
+window.addEventListener('afterprint', () => toPrint(false));
+$('#pdf').addEventListener('click', () => { toPrint(true); setTimeout(() => window.print(), 150); });
+let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resizeAll, 150); });
+</script>
+</body>
+</html>
