@@ -373,7 +373,19 @@ function drawTopics() {
       return `<tr class="pick ${sel.t === t.k ? 'on' : ''} ${i >= 15 ? 'extra' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank r">${t.rank}</td><td class="t"><b>${esc(t.name)}</b></td><td class="dom">${esc(t.domain)}</td><td class="r bar"><i style="width:calc(${(t.enrolments / maxE * 100).toFixed(1)}% - 12px)"></i><span>${cmp(t.enrolments)}</span></td><td class="r">${pct(t.share)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
     : `<div class="empty">${q ? 'No topic matches “' + esc($('#t-q').value.trim()) + '”.' : 'No topics for this selection.'}</div>`;
 }
-// average rating by domain, week by week (own domain picker; follows the Domain filter when one is set)
+// average rating by domain, week by week: own domain picker, and every filter in the bar applies
+// (weekly rows: trend-cube.txt always; trend-topic.txt only when a Topic filter is picked)
+const TRW = { cube: null, topic: null, loading: {} };
+async function loadTrendRows(kind) {
+  if (TRW[kind] || TRW.loading[kind]) return TRW.loading[kind];
+  TRW.loading[kind] = (async () => {
+    const b64 = (await (await fetch(`snapshot/trend-${kind}.txt`)).text()).trim(), bin = atob(b64), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    TRW[kind] = JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
+    drawTrend();
+  })();
+  return TRW.loading[kind];
+}
 function fillTrendSelect() {
   const s = $('#rt-dom'); if (s.options.length) return;
   const byLatest = TREND.domains.slice().sort((a, b) => (TREND.rated[b].at(-1) || 0) - (TREND.rated[a].at(-1) || 0));
@@ -381,23 +393,42 @@ function fillTrendSelect() {
   s.value = byLatest[0];   // opens on the domain with the most rated courses
   s.addEventListener('change', drawTrend);
 }
+// weekly average rating for one domain under the current filters; null = data not loaded yet
+function trendFor(domName) {
+  const topicMode = sel.t != null, src = topicMode ? TRW.topic : TRW.cube;
+  if (!src) { loadTrendRows(topicMode ? 'topic' : 'cube'); return null; }
+  const d = D.domains.indexOf(domName), W = src.weeks.length, s = new Array(W).fill(0), n = new Array(W).fill(0);
+  const off = topicMode ? 1 : 0;   // topic rows carry the topic id before p, d, l, y, g
+  for (const r of src.rows) {
+    if (topicMode && r[1] !== sel.t) continue;
+    if (r[off + 2] !== d) continue;
+    if (sel.p != null && r[off + 1] !== sel.p) continue;
+    if (sel.l != null && r[off + 3] !== sel.l) continue;
+    if (sel.y != null && r[off + 4] !== sel.y) continue;
+    if (sel.g != null && r[off + 5] !== sel.g) continue;
+    s[r[0]] += r[off + 6]; n[r[0]] += r[off + 7];
+  }
+  return { weeks: src.weeks, rating: s.map((v, w) => n[w] >= 10 ? +(v / n[w]).toFixed(3) : null), rated: n };
+}
 function drawTrend() {
   if (!TREND || !TREND.weeks || !TREND.weeks.length) return empty('c-rtr');
   fillTrendSelect();
-  const doms = [$('#rt-dom').value];
+  const dom = $('#rt-dom').value, t = trendFor(dom);
+  const applied = ['p', 'l', 'y', 'g', 't'].filter(k => sel[k] != null).map(k => `${DIMS[k]}: ${nameOf(k, sel[k])}`);
+  $('#rt-sub').textContent = 'Courses with 10+ reviews · pick a domain to see its trend' + (applied.length ? ' · filtered by ' + applied.join(', ') : ' · all platforms');
+  if (!t) return chart('c-rtr').setOption({ title: { text: 'Loading weekly ratings…', left: 'center', top: 'middle', textStyle: { color: MUTED, fontSize: 12, fontWeight: 400 } }, xAxis: [], yAxis: [], series: [] }, true);
+  if (!t.rating.some(v => v != null)) return empty('c-rtr');
   const fmt = x => x == null ? '–' : x.toFixed(2);
-  const series = doms.map((d, k) => ({ name: d, type: 'line', symbol: 'circle', symbolSize: 8, connectNulls: true, lineStyle: { width: 2.5 },
-      itemStyle: { color: ['#1976d2', '#1f9e8f', '#e96f12', '#8a6bbf', '#25a8d9'][k % 5] }, data: TREND.rating[d],
-      label: { show: doms.length === 1, position: 'top', fontSize: 11, fontWeight: 600, color: INK, formatter: q => fmt(q.value) } }));
-  const vals = series.flatMap(x => x.data).filter(x => x != null), lo = Math.min(...vals), hi = Math.max(...vals);
+  const vals = t.rating.filter(x => x != null), lo = Math.min(...vals), hi = Math.max(...vals);
   chart('c-rtr').setOption({
     animation: false, legend: { ...LEG }, grid: { left: 8, right: 24, top: 34, bottom: 8, containLabel: true },
     tooltip: { ...TIP, trigger: 'axis', formatter: ps => `<b>${esc(ps[0].axisValue)}</b><br>` + ps.map(p => `${p.marker}${esc(p.seriesName)}: <b>${fmt(p.value)}</b>` +
-      (TREND.rated[p.seriesName] ? ` <span style="opacity:.7">(${nf(TREND.rated[p.seriesName][p.dataIndex])} rated courses)</span>` : '')).join('<br>') },
-    xAxis: { type: 'category', data: TREND.weeks, boundaryGap: false, axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11 } },
+      ` <span style="opacity:.7">(${nf(t.rated[p.dataIndex])} rated courses)</span>`).join('<br>') },
+    xAxis: { type: 'category', data: t.weeks, boundaryGap: false, axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11 } },
     yAxis: { type: 'value', min: Math.floor((lo - .05) * 20) / 20, max: Math.ceil((hi + .05) * 20) / 20, splitNumber: 4,
       axisLabel: { color: MUTED, fontSize: 10, formatter: x => x.toFixed(2) }, splitLine: { lineStyle: { color: '#e6e9ef', type: 'dashed' } } },
-    series }, true);
+    series: [{ name: dom, type: 'line', symbol: 'circle', symbolSize: 8, connectNulls: true, lineStyle: { width: 2.5 }, itemStyle: { color: '#1976d2' }, data: t.rating,
+      label: { show: true, position: 'top', fontSize: 11, fontWeight: 600, color: INK, formatter: q => fmt(q.value) } }] }, true);
 }
 function draw() {
   R = calculate();
@@ -465,7 +496,8 @@ $('#xlsx').addEventListener('click', () => {
   add('Enrolments by domain', [['Domain', 'Enrolments'], ...R.enrolDomain.map(x => [x.name, Math.round(x.value)])], [40, 16]);
   add('Learners per course - domain', [['Domain', 'Learners per course', 'Courses reporting enrolments'], ...R.lpcDomain.map(x => [x.name, Math.round(x.value), x.courses])], [40, 20, 28]);
   add('Learners by course length', [['Course length', 'Learners per course', 'Courses reporting enrolments'], ...R.length.map(x => [x.name, Math.round(x.value), x.courses])], [16, 20, 28]);
-  if (TREND) add('Rating by domain - weekly', [['Domain', ...TREND.weeks], ...TREND.domains.map(d => [d, ...TREND.rating[d]])], [40, ...TREND.weeks.map(() => 18)]);
+  if (TREND) { const rows = TREND.domains.map(d => { const t = trendFor(d); return [d, ...(t ? t.rating : TREND.rating[d])]; });
+    add('Rating by domain - weekly', [['Domain', ...TREND.weeks], ...rows], [40, ...TREND.weeks.map(() => 18)]); }
   add('Rating by platform', [['Platform', 'Average rating', 'Rated courses'], ...R.ratingPlatform.map(x => [x.name, +x.value.toFixed(2), x.rated])], [28, 16, 16]);
   add('Level mix by domain', [['Domain', ...D.levels.map(l => l + ' (%)')], ...R.levelMix.map(x => [x.name, ...x.shares.map(p1)])], [40, ...D.levels.map(() => 16)]);
   add('Platform share of domains', [['Domain', ...R.platShare.platforms.map(p => p.name + ' (%)'), 'Other platforms (%)'], ...R.platShare.rows.map(x => [x.name, ...x.shares.map(p1), p1(x.other)])], [40, ...R.platShare.platforms.map(() => 18), 20]);
