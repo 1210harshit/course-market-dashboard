@@ -184,6 +184,7 @@ html.printing #t-top tr.extra { display: none }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const WEEKS = [{"id": "2026-10-25", "label": "Week 4 · Oct 2026 (latest)", "file": "snapshot/week-2026-10-25.txt"}, {"id": "2026-10-16", "label": "Week 3 · Oct 2026", "file": "snapshot/week-2026-10-16.txt"}, {"id": "2026-10-09", "label": "Week 2 · Oct 2026", "file": "snapshot/week-2026-10-09.txt"}, {"id": "2026-10-06", "label": "Week 1 · Oct 2026", "file": "snapshot/week-2026-10-06.txt"}];
+const BUILD = 'a51f0c46c485';   // changes on every publish; open pages poll snapshot/version.txt and reload themselves
 const TREND = {"weeks": ["Week 1 · Oct 2026", "Week 2 · Oct 2026", "Week 3 · Oct 2026", "Week 4 · Oct 2026"], "domains": ["AI & Machine Learning", "Business & Strategy", "Cloud Computing", "Compliance, Safety & HR", "Cybersecurity", "Data Science & Analytics", "Design & Creative", "DevOps & IT Infrastructure", "Finance & Accounting", "Health, Medicine & Wellness", "Humanities & Social Sciences", "Languages", "Leadership & Management", "Lifestyle, Crafts & Hobbies", "Marketing & Sales", "Mobile & Game Development", "Music & Performing Arts", "Office & Productivity Tools", "Personal Development & Communication", "Photography & Video", "Programming & Software Dev", "Project & Product Management", "Science, Engineering & Math", "Teaching & Education", "Web Development"], "overall": [4.404, 4.4, 4.399, 4.399], "rating": {"AI & Machine Learning": [4.406, 4.385, 4.377, 4.379], "Business & Strategy": [4.367, 4.371, 4.372, 4.373], "Cloud Computing": [4.437, 4.424, 4.406, 4.407], "Compliance, Safety & HR": [4.023, 4.098, 4.14, 4.14], "Cybersecurity": [4.42, 4.398, 4.381, 4.381], "Data Science & Analytics": [4.456, 4.415, 4.399, 4.399], "Design & Creative": [4.562, 4.514, 4.485, 4.484], "DevOps & IT Infrastructure": [4.436, 4.402, 4.388, 4.389], "Finance & Accounting": [4.364, 4.359, 4.359, 4.359], "Health, Medicine & Wellness": [4.376, 4.429, 4.467, 4.468], "Humanities & Social Sciences": [4.384, 4.403, 4.423, 4.42], "Languages": [4.366, 4.44, 4.448, 4.449], "Leadership & Management": [4.386, 4.402, 4.411, 4.411], "Lifestyle, Crafts & Hobbies": [4.503, 4.483, 4.489, 4.489], "Marketing & Sales": [4.371, 4.341, 4.339, 4.339], "Mobile & Game Development": [4.336, 4.362, 4.365, 4.365], "Music & Performing Arts": [4.515, 4.511, 4.5, 4.5], "Office & Productivity Tools": [4.395, 4.425, 4.417, 4.417], "Personal Development & Communication": [4.369, 4.406, 4.423, 4.424], "Photography & Video": [4.521, 4.462, 4.436, 4.436], "Programming & Software Dev": [4.397, 4.383, 4.37, 4.37], "Project & Product Management": [4.402, 4.389, 4.389, 4.389], "Science, Engineering & Math": [4.294, 4.314, 4.33, 4.331], "Teaching & Education": [4.392, 4.418, 4.427, 4.429], "Web Development": [4.392, 4.39, 4.385, 4.385]}, "rated": {"AI & Machine Learning": [4159, 7191, 10077, 10158], "Business & Strategy": [6396, 12566, 18803, 18846], "Cloud Computing": [3876, 4670, 5658, 5682], "Compliance, Safety & HR": [4053, 5132, 6061, 6109], "Cybersecurity": [2345, 4382, 5783, 5799], "Data Science & Analytics": [4739, 7543, 11983, 12003], "Design & Creative": [11284, 15984, 21718, 21745], "DevOps & IT Infrastructure": [4531, 9590, 15361, 15395], "Finance & Accounting": [3300, 7468, 11675, 11689], "Health, Medicine & Wellness": [3651, 6579, 10947, 10952], "Humanities & Social Sciences": [2509, 4335, 6665, 6682], "Languages": [1249, 3138, 4722, 4721], "Leadership & Management": [2138, 2957, 4116, 4125], "Lifestyle, Crafts & Hobbies": [2090, 4532, 7210, 7225], "Marketing & Sales": [3197, 7255, 11972, 11982], "Mobile & Game Development": [1290, 3055, 5399, 5403], "Music & Performing Arts": [1239, 2989, 5987, 5990], "Office & Productivity Tools": [2139, 4449, 7561, 7568], "Personal Development & Communication": [4950, 9835, 15602, 15619], "Photography & Video": [1748, 3018, 4530, 4532], "Programming & Software Dev": [6593, 11836, 20834, 20890], "Project & Product Management": [1611, 2386, 4430, 4436], "Science, Engineering & Math": [3608, 6570, 10087, 10094], "Teaching & Education": [1387, 4083, 7146, 7150], "Web Development": [3172, 7002, 11792, 11810]}};   // average rating by domain for every week, oldest first
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -201,7 +202,7 @@ const cache = {};
 async function loadWeek(id) {
   if (cache[id]) return cache[id];
   const w = WEEKS.find(x => x.id === id);
-  const b64 = (await (await fetch(w.file)).text()).trim(), bin = atob(b64), bytes = new Uint8Array(bin.length);
+  const b64 = (await (await fetch(`${w.file}?v=${BUILD}`)).text()).trim(), bin = atob(b64), bytes = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   const d = JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
   for (const [k, col] of Object.entries(d.cube)) {        // sparse columns are stored as gaps + values
@@ -379,7 +380,7 @@ const TRW = { cube: null, topic: null, loading: {} };
 async function loadTrendRows(kind) {
   if (TRW[kind] || TRW.loading[kind]) return TRW.loading[kind];
   TRW.loading[kind] = (async () => {
-    const b64 = (await (await fetch(`snapshot/trend-${kind}.txt`)).text()).trim(), bin = atob(b64), bytes = new Uint8Array(bin.length);
+    const b64 = (await (await fetch(`snapshot/trend-${kind}.txt?v=${BUILD}`)).text()).trim(), bin = atob(b64), bytes = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     TRW[kind] = JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
     drawTrend();
@@ -517,7 +518,32 @@ window.addEventListener('afterprint', () => toPrint(false));
 let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(resizeAll, 150); });
 
 $('#cs-rank').value = 'new3'; $('#cs-n').value = '10';   // always open on the default ranking
-showWeek(WEEKS[0].id);   // always the latest week
+
+// ---------------- live updates: when a new version is published, reload in place and keep the viewer's choices
+const KEEP = 'cdt-state';
+function saveState() {
+  try { sessionStorage.setItem(KEEP, JSON.stringify({ sel, rank: $('#cs-rank').value, n: $('#cs-n').value, dom: $('#rt-dom')?.value, q: $('#t-q')?.value, y: scrollY })); } catch (e) {}
+}
+function restoreState() {
+  let st = null; try { st = JSON.parse(sessionStorage.getItem(KEEP) || 'null'); sessionStorage.removeItem(KEEP); } catch (e) {}
+  if (!st) return null;
+  Object.assign(sel, st.sel || {}); if (st.rank && RANK[st.rank]) $('#cs-rank').value = st.rank; if (st.n) $('#cs-n').value = st.n; if (st.q != null) $('#t-q').value = st.q;
+  return st;
+}
+async function checkForUpdate() {
+  try {
+    const v = (await (await fetch(`snapshot/version.txt?t=${Date.now()}`, { cache: 'no-store' })).text()).trim();
+    if (v && v !== BUILD) { saveState(); location.replace(location.pathname + '?v=' + encodeURIComponent(v) + location.hash); }
+  } catch (e) { /* offline or not published yet: try again next time */ }
+}
+setInterval(checkForUpdate, 2 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkForUpdate(); });
+const RESTORED = restoreState();
+showWeek(WEEKS[0].id).then(() => {   // always the latest week
+  if (!RESTORED) return;
+  if (RESTORED.dom && $('#rt-dom') && [...$('#rt-dom').options].some(o => o.value === RESTORED.dom)) { $('#rt-dom').value = RESTORED.dom; drawTrend(); }
+  if (RESTORED.y) scrollTo(0, RESTORED.y);
+});
 </script>
 </body>
 </html>
