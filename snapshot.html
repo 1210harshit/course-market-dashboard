@@ -161,7 +161,8 @@ html.printing #t-top tr.extra { display: none }
     <article class="card"><header><div><h2>Level mix by domain</h2><div class="sub">Share of each domain's courses at each level · all domains</div></div><button class="png" data-chart="c-lvl" data-name="Level mix by domain" type="button">PNG</button></header><div class="chart" id="c-lvl"></div></article>
     <article class="card pagebreak"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
     <article class="card span2"><header><div><h2>Learners per course, by course length</h2><div class="sub">NA = length not available</div></div><button class="png" data-chart="c-len" data-name="Learners per course by course length" type="button">PNG</button></header><div class="chart" id="c-len"></div></article>
-    <article class="card span3"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
+    <article class="card span3"><header><div><h2>Average rating by domain, week by week</h2><div class="sub" id="rt-sub">Courses with 10+ reviews, all platforms · pick a domain to compare it with the market average</div></div><div class="tools"><label for="rt-dom">Domain <select id="rt-dom" autocomplete="off"></select></label><button class="png" data-chart="c-rtr" data-name="Average rating by domain week by week" type="button">PNG</button></div></header><div class="chart" id="c-rtr"></div></article>
+    <article class="card span3 pagebreak"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
       <div class="tools"><label for="t-q">Search <input class="search" id="t-q" type="search" placeholder="Topic or domain, e.g. Python" autocomplete="off"></label><span class="count" id="t-count"></span></div></header>
       <div class="tbl" id="t-top"></div></article>
     <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · all domains, ranked by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
@@ -183,6 +184,7 @@ html.printing #t-top tr.extra { display: none }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const WEEKS = [{"id": "2026-10-25", "label": "Week 4 · Oct 2026 (latest)", "file": "snapshot/week-2026-10-25.txt"}, {"id": "2026-10-16", "label": "Week 3 · Oct 2026", "file": "snapshot/week-2026-10-16.txt"}, {"id": "2026-10-09", "label": "Week 2 · Oct 2026", "file": "snapshot/week-2026-10-09.txt"}, {"id": "2026-10-06", "label": "Week 1 · Oct 2026", "file": "snapshot/week-2026-10-06.txt"}];
+const TREND = {"weeks": ["Week 1 · Oct 2026", "Week 2 · Oct 2026", "Week 3 · Oct 2026", "Week 4 · Oct 2026"], "domains": ["AI & Machine Learning", "Business & Strategy", "Cloud Computing", "Compliance, Safety & HR", "Cybersecurity", "Data Science & Analytics", "Design & Creative", "DevOps & IT Infrastructure", "Finance & Accounting", "Health, Medicine & Wellness", "Humanities & Social Sciences", "Languages", "Leadership & Management", "Lifestyle, Crafts & Hobbies", "Marketing & Sales", "Mobile & Game Development", "Music & Performing Arts", "Office & Productivity Tools", "Personal Development & Communication", "Photography & Video", "Programming & Software Dev", "Project & Product Management", "Science, Engineering & Math", "Teaching & Education", "Web Development"], "overall": [4.404, 4.4, 4.399, 4.399], "rating": {"AI & Machine Learning": [4.406, 4.385, 4.377, 4.379], "Business & Strategy": [4.367, 4.371, 4.372, 4.373], "Cloud Computing": [4.437, 4.424, 4.406, 4.407], "Compliance, Safety & HR": [4.023, 4.098, 4.14, 4.14], "Cybersecurity": [4.42, 4.398, 4.381, 4.381], "Data Science & Analytics": [4.456, 4.415, 4.399, 4.399], "Design & Creative": [4.562, 4.514, 4.485, 4.484], "DevOps & IT Infrastructure": [4.436, 4.402, 4.388, 4.389], "Finance & Accounting": [4.364, 4.359, 4.359, 4.359], "Health, Medicine & Wellness": [4.376, 4.429, 4.467, 4.468], "Humanities & Social Sciences": [4.384, 4.403, 4.423, 4.42], "Languages": [4.366, 4.44, 4.448, 4.449], "Leadership & Management": [4.386, 4.402, 4.411, 4.411], "Lifestyle, Crafts & Hobbies": [4.503, 4.483, 4.489, 4.489], "Marketing & Sales": [4.371, 4.341, 4.339, 4.339], "Mobile & Game Development": [4.336, 4.362, 4.365, 4.365], "Music & Performing Arts": [4.515, 4.511, 4.5, 4.5], "Office & Productivity Tools": [4.395, 4.425, 4.417, 4.417], "Personal Development & Communication": [4.369, 4.406, 4.423, 4.424], "Photography & Video": [4.521, 4.462, 4.436, 4.436], "Programming & Software Dev": [4.397, 4.383, 4.37, 4.37], "Project & Product Management": [4.402, 4.389, 4.389, 4.389], "Science, Engineering & Math": [4.294, 4.314, 4.33, 4.331], "Teaching & Education": [4.392, 4.418, 4.427, 4.429], "Web Development": [4.392, 4.39, 4.385, 4.385]}, "rated": {"AI & Machine Learning": [4159, 7191, 10077, 10158], "Business & Strategy": [6396, 12566, 18803, 18846], "Cloud Computing": [3876, 4670, 5658, 5682], "Compliance, Safety & HR": [4053, 5132, 6061, 6109], "Cybersecurity": [2345, 4382, 5783, 5799], "Data Science & Analytics": [4739, 7543, 11983, 12003], "Design & Creative": [11284, 15984, 21718, 21745], "DevOps & IT Infrastructure": [4531, 9590, 15361, 15395], "Finance & Accounting": [3300, 7468, 11675, 11689], "Health, Medicine & Wellness": [3651, 6579, 10947, 10952], "Humanities & Social Sciences": [2509, 4335, 6665, 6682], "Languages": [1249, 3138, 4722, 4721], "Leadership & Management": [2138, 2957, 4116, 4125], "Lifestyle, Crafts & Hobbies": [2090, 4532, 7210, 7225], "Marketing & Sales": [3197, 7255, 11972, 11982], "Mobile & Game Development": [1290, 3055, 5399, 5403], "Music & Performing Arts": [1239, 2989, 5987, 5990], "Office & Productivity Tools": [2139, 4449, 7561, 7568], "Personal Development & Communication": [4950, 9835, 15602, 15619], "Photography & Video": [1748, 3018, 4530, 4532], "Programming & Software Dev": [6593, 11836, 20834, 20890], "Project & Product Management": [1611, 2386, 4430, 4436], "Science, Engineering & Math": [3608, 6570, 10087, 10094], "Teaching & Education": [1387, 4083, 7146, 7150], "Web Development": [3172, 7002, 11792, 11810]}};   // average rating by domain for every week, oldest first
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const nf = v => v == null ? '–' : Math.round(v).toLocaleString('en-US');
@@ -371,6 +373,37 @@ function drawTopics() {
       return `<tr class="pick ${sel.t === t.k ? 'on' : ''} ${i >= 15 ? 'extra' : ''}" data-t="${t.k}" title="Click to filter by ${esc(t.name)}"><td class="rank r">${t.rank}</td><td class="t"><b>${esc(t.name)}</b></td><td class="dom">${esc(t.domain)}</td><td class="r bar"><i style="width:calc(${(t.enrolments / maxE * 100).toFixed(1)}% - 12px)"></i><span>${cmp(t.enrolments)}</span></td><td class="r">${pct(t.share)}</td><td class="r">${chip}</td></tr>`; }).join('')}</tbody></table>`
     : `<div class="empty">${q ? 'No topic matches “' + esc($('#t-q').value.trim()) + '”.' : 'No topics for this selection.'}</div>`;
 }
+// average rating by domain, week by week (own domain picker; follows the Domain filter when one is set)
+const TOP5 = '__top5', MARKET = '__all';
+function fillTrendSelect() {
+  const s = $('#rt-dom'); if (s.options.length) return;
+  const byLatest = TREND.domains.slice().sort((a, b) => (TREND.rated[b].at(-1) || 0) - (TREND.rated[a].at(-1) || 0));
+  s.innerHTML = `<option value="${TOP5}">Top 5 domains (by rated courses)</option><option value="${MARKET}">All domains (market average)</option>`
+    + TREND.domains.slice().sort((a, b) => a.localeCompare(b)).map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+  s.dataset.top = JSON.stringify(byLatest.slice(0, 5));
+  s.addEventListener('change', drawTrend);
+}
+function drawTrend() {
+  if (!TREND || !TREND.weeks || !TREND.weeks.length) return empty('c-rtr');
+  fillTrendSelect();
+  const s = $('#rt-dom'), v = s.value || TOP5;
+  const doms = v === TOP5 ? JSON.parse(s.dataset.top) : v === MARKET ? [] : [v];
+  const fmt = x => x == null ? '–' : x.toFixed(2);
+  const series = doms.map((d, k) => ({ name: d, type: 'line', symbol: 'circle', symbolSize: 8, connectNulls: true, lineStyle: { width: 2.5 },
+      itemStyle: { color: ['#1976d2', '#1f9e8f', '#e96f12', '#8a6bbf', '#25a8d9'][k % 5] }, data: TREND.rating[d],
+      label: { show: doms.length === 1, position: 'top', fontSize: 11, fontWeight: 600, color: INK, formatter: q => fmt(q.value) } }))
+    .concat([{ name: 'Market average (all domains)', type: 'line', symbol: 'emptyCircle', symbolSize: 7, lineStyle: { width: 2, type: 'dashed' }, itemStyle: { color: '#0f327e' },
+      data: TREND.overall, label: { show: doms.length <= 1, position: 'bottom', fontSize: 11, color: '#0f327e', formatter: q => fmt(q.value) } }]);
+  const vals = series.flatMap(x => x.data).filter(x => x != null), lo = Math.min(...vals), hi = Math.max(...vals);
+  chart('c-rtr').setOption({
+    animation: false, legend: { ...LEG }, grid: { left: 8, right: 24, top: 34, bottom: 8, containLabel: true },
+    tooltip: { ...TIP, trigger: 'axis', formatter: ps => `<b>${esc(ps[0].axisValue)}</b><br>` + ps.map(p => `${p.marker}${esc(p.seriesName)}: <b>${fmt(p.value)}</b>` +
+      (TREND.rated[p.seriesName] ? ` <span style="opacity:.7">(${nf(TREND.rated[p.seriesName][p.dataIndex])} rated courses)</span>` : '')).join('<br>') },
+    xAxis: { type: 'category', data: TREND.weeks, boundaryGap: false, axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11 } },
+    yAxis: { type: 'value', min: Math.floor((lo - .05) * 20) / 20, max: Math.ceil((hi + .05) * 20) / 20, splitNumber: 4,
+      axisLabel: { color: MUTED, fontSize: 10, formatter: x => x.toFixed(2) }, splitLine: { lineStyle: { color: '#e6e9ef', type: 'dashed' } } },
+    series }, true);
+}
 function draw() {
   R = calculate();
   hbar('c-enr', R.enrolDomain, cmp, '#1976d2', 'd', { rowH: 20, align: 1 });
@@ -383,6 +416,8 @@ function draw() {
     x => x.sk != null ? toggle('p', x.sk) : toggle('d', x.k), 23);
   drawTopics();
   drawCourses();
+  if (sel.d != null && TREND) { fillTrendSelect(); const nm = D.domains[sel.d]; if (TREND.domains.includes(nm)) $('#rt-dom').value = nm; }
+  drawTrend();
   for (const s of document.querySelectorAll('select[data-k]')) { const v = sel[s.dataset.k]; s.value = v == null ? '' : String(v); s.classList.toggle('on', v != null); }
   const applied = Object.entries(sel).filter(([, v]) => v != null).map(([k, v]) => `${DIMS[k]}: ${nameOf(k, v)}`);
   $('#applied').hidden = !applied.length; $('#applied').textContent = applied.length ? 'Filtered by ' + applied.join(' · ') : '';
@@ -435,6 +470,7 @@ $('#xlsx').addEventListener('click', () => {
   add('Enrolments by domain', [['Domain', 'Enrolments'], ...R.enrolDomain.map(x => [x.name, Math.round(x.value)])], [40, 16]);
   add('Learners per course - domain', [['Domain', 'Learners per course', 'Courses reporting enrolments'], ...R.lpcDomain.map(x => [x.name, Math.round(x.value), x.courses])], [40, 20, 28]);
   add('Learners by course length', [['Course length', 'Learners per course', 'Courses reporting enrolments'], ...R.length.map(x => [x.name, Math.round(x.value), x.courses])], [16, 20, 28]);
+  if (TREND) add('Rating by domain - weekly', [['Domain', ...TREND.weeks], ['Market average (all domains)', ...TREND.overall], ...TREND.domains.map(d => [d, ...TREND.rating[d]])], [40, ...TREND.weeks.map(() => 18)]);
   add('Rating by platform', [['Platform', 'Average rating', 'Rated courses'], ...R.ratingPlatform.map(x => [x.name, +x.value.toFixed(2), x.rated])], [28, 16, 16]);
   add('Level mix by domain', [['Domain', ...D.levels.map(l => l + ' (%)')], ...R.levelMix.map(x => [x.name, ...x.shares.map(p1)])], [40, ...D.levels.map(() => 16)]);
   add('Platform share of domains', [['Domain', ...R.platShare.platforms.map(p => p.name + ' (%)'), 'Other platforms (%)'], ...R.platShare.rows.map(x => [x.name, ...x.shares.map(p1), p1(x.other)])], [40, ...R.platShare.platforms.map(() => 18), 20]);
