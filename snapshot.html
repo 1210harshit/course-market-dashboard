@@ -162,8 +162,7 @@ html.printing #t-top tr.extra { display: none }
     <article class="card pagebreak"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
     <article class="card span2"><header><div><h2>Learners per course, by course length</h2><div class="sub">NA = length not available</div></div><button class="png" data-chart="c-len" data-name="Learners per course by course length" type="button">PNG</button></header><div class="chart" id="c-len"></div></article>
     <article class="card span3"><header><div><h2>Average rating by domain, week by week</h2><div class="sub" id="rt-sub">Courses with 10+ reviews, all platforms · pick a domain to see its trend</div></div><div class="tools"><label for="rt-dom">Domain <select id="rt-dom" autocomplete="off"></select></label><button class="png" data-chart="c-rtr" data-name="Average rating by domain week by week" type="button">PNG</button></div></header><div class="chart" id="c-rtr"></div></article>
-    <article class="card span3 pagebreak"><header><div><h2>Weekly learner growth by domain</h2><div class="sub" id="gr-sub">Growth in learners per 7 days, on courses whose learner numbers were updated · domain picked above</div></div><div class="tools"><button class="png" data-chart="c-grw" data-name="Weekly learner growth by domain" type="button">PNG</button></div></header><div class="chart" id="c-grw"></div></article>
-    <article class="card span3"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
+    <article class="card span3 pagebreak"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
       <div class="tools"><label for="t-q">Search <input class="search" id="t-q" type="search" placeholder="Topic or domain, e.g. Python" autocomplete="off"></label><span class="count" id="t-count"></span></div></header>
       <div class="tbl" id="t-top"></div></article>
     <article class="card span3 pagebreak"><header><div><h2>Platforms' share of each domain</h2><div class="sub">Where each domain's learners come from · all domains, ranked by learners</div></div><button class="png" data-chart="c-psh" data-name="Platforms share of each domain" type="button">PNG</button></header><div class="chart tall" id="c-psh"></div></article>
@@ -431,58 +430,6 @@ function drawTrend() {
     series: [{ name: dom, type: 'line', symbol: 'circle', symbolSize: 8, connectNulls: true, lineStyle: { width: 2.5 }, itemStyle: { color: '#1976d2' }, data: t.rating,
       label: { show: true, position: 'top', fontSize: 11, fontWeight: 600, color: INK, formatter: q => fmt(q.value) } }] }, true);
 }
-// weekly learner growth: courses in both weeks whose learner count went up; growth per 7 days so weeks of different length compare
-const GRW = { cube: null, topic: null, loading: {} };
-async function loadGrowthRows(kind) {
-  if (GRW[kind] || GRW.loading[kind]) return GRW.loading[kind];
-  GRW.loading[kind] = (async () => {
-    const b64 = (await (await fetch(`snapshot/growth-${kind}.txt`)).text()).trim(), bin = atob(b64), bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    GRW[kind] = JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text());
-    drawGrowth();
-  })();
-  return GRW.loading[kind];
-}
-function growthFor(domName) {
-  const topicMode = sel.t != null, src = topicMode ? GRW.topic : GRW.cube;
-  if (!src) { loadGrowthRows(topicMode ? 'topic' : 'cube'); return null; }
-  const d = D.domains.indexOf(domName), W = src.weeks.length, b = new Array(W).fill(0), g = new Array(W).fill(0), n = new Array(W).fill(0);
-  const off = topicMode ? 1 : 0;
-  for (const r of src.rows) {
-    if (topicMode && r[1] !== sel.t) continue;
-    if (r[off + 2] !== d) continue;
-    if (sel.p != null && r[off + 1] !== sel.p) continue;
-    if (sel.l != null && r[off + 3] !== sel.l) continue;
-    if (sel.y != null && r[off + 4] !== sel.y) continue;
-    if (sel.g != null && r[off + 5] !== sel.g) continue;
-    b[r[0]] += r[off + 6]; g[r[0]] += r[off + 7]; n[r[0]] += r[off + 8];
-  }
-  const weekly = b.map((v, w) => v > 0 && src.days[w] ? g[w] / v / src.days[w] * 7 : null);
-  return { weeks: src.weeks, days: src.days, weekly, gained: g, courses: n };
-}
-function drawGrowth() {
-  const el = document.getElementById('c-grw'); if (!el || !TREND) return;
-  const sd = $('#rt-dom'); if (sd && !sd.dataset.growth) { sd.dataset.growth = 1; sd.addEventListener('change', drawGrowth); }
-  const dom = sd.value, t = growthFor(dom);
-  const applied = ['p', 'l', 'y', 'g', 't'].filter(k => sel[k] != null).map(k => `${DIMS[k]}: ${nameOf(k, sel[k])}`);
-  $('#gr-sub').textContent = `Growth in learners per 7 days, on courses whose learner numbers were updated · ${dom}` + (applied.length ? ' · filtered by ' + applied.join(', ') : '');
-  if (!t) return chart('c-grw').setOption({ title: { text: 'Loading weekly growth…', left: 'center', top: 'middle', textStyle: { color: MUTED, fontSize: 12, fontWeight: 400 } }, xAxis: [], yAxis: [], series: [] }, true);
-  const idx = t.weeks.map((_, w) => w).filter(w => t.days[w]);   // from the 2nd week on
-  if (!idx.some(w => t.weekly[w] != null)) return empty('c-grw');
-  const pf = v => v == null ? 'No update' : (v >= 0 ? '+' : '') + (Math.abs(v) < .001 ? (v * 100).toFixed(3) : (v * 100).toFixed(2)) + '%';
-  chart('c-grw').setOption({
-    animation: false, grid: { left: 8, right: 24, top: 30, bottom: 8, containLabel: true },
-    tooltip: { ...TIP, trigger: 'axis', formatter: ps => { const w = idx[ps[0].dataIndex];
-      return `<b>${esc(t.weeks[w])}</b><br>${esc(dom)}: <b>${pf(t.weekly[w])}</b> per 7 days` + (t.weekly[w] == null ? '<br><span style="opacity:.7">No platform updated learner numbers for these courses</span>'
-        : `<br><span style="opacity:.7">+${nf(t.gained[w])} learners over ${t.days[w]} days on ${nf(t.courses[w])} updated courses</span>`); } },
-    xAxis: { type: 'category', data: idx.map(w => t.weeks[w]), boundaryGap: false, axisTick: { show: false }, axisLine: { lineStyle: { color: LINE } }, axisLabel: { color: INK, fontSize: 11 } },
-    yAxis: { type: 'value', min: 0, splitNumber: 4, axisLabel: { color: MUTED, fontSize: 10, formatter: v => (v * 100).toFixed(2) + '%' }, splitLine: { lineStyle: { color: '#e6e9ef', type: 'dashed' } } },
-    series: [{ name: dom, type: 'line', symbol: 'circle', symbolSize: 8, connectNulls: false, lineStyle: { width: 2.5 }, itemStyle: { color: '#1f9e8f' },
-      data: idx.map(w => t.weekly[w] ?? null),
-      label: { show: true, position: 'top', fontSize: 11, fontWeight: 600, color: INK, formatter: q => pf(q.value) } },
-      { name: 'No update', type: 'scatter', symbol: 'emptyCircle', symbolSize: 9, itemStyle: { color: '#9aa6bd' }, data: idx.map(w => t.weekly[w] == null ? 0 : null),
-        label: { show: true, position: 'top', fontSize: 10, color: MUTED, formatter: () => 'No update' }, tooltip: { show: false } }] }, true);
-}
 function draw() {
   R = calculate();
   hbar('c-enr', R.enrolDomain, cmp, '#1976d2', 'd', { rowH: 20, align: 1 });
@@ -497,7 +444,6 @@ function draw() {
   drawCourses();
   if (sel.d != null && TREND) { fillTrendSelect(); const nm = D.domains[sel.d]; if (TREND.domains.includes(nm)) $('#rt-dom').value = nm; }
   drawTrend();
-  drawGrowth();
   for (const s of document.querySelectorAll('select[data-k]')) { const v = sel[s.dataset.k]; s.value = v == null ? '' : String(v); s.classList.toggle('on', v != null); }
   const applied = Object.entries(sel).filter(([, v]) => v != null).map(([k, v]) => `${DIMS[k]}: ${nameOf(k, v)}`);
   $('#applied').hidden = !applied.length; $('#applied').textContent = applied.length ? 'Filtered by ' + applied.join(' · ') : '';
@@ -552,8 +498,6 @@ $('#xlsx').addEventListener('click', () => {
   add('Learners by course length', [['Course length', 'Learners per course', 'Courses reporting enrolments'], ...R.length.map(x => [x.name, Math.round(x.value), x.courses])], [16, 20, 28]);
   if (TREND) { const rows = TREND.domains.map(d => { const t = trendFor(d); return [d, ...(t ? t.rating : TREND.rating[d])]; });
     add('Rating by domain - weekly', [['Domain', ...TREND.weeks], ...rows], [40, ...TREND.weeks.map(() => 18)]); }
-  { const rows = TREND.domains.map(d => { const t = growthFor(d); return t ? [d, ...t.weekly.map((v, w) => t.days[w] ? (v == null ? 'No update' : +(v * 100).toFixed(3)) : null).slice(1)] : null; }).filter(Boolean);
-    if (rows.length) add('Learner growth - weekly', [['Domain', ...TREND.weeks.slice(1).map(w => w + ' (% per 7 days)')], ...rows], [40, ...TREND.weeks.slice(1).map(() => 26)]); }
   add('Rating by platform', [['Platform', 'Average rating', 'Rated courses'], ...R.ratingPlatform.map(x => [x.name, +x.value.toFixed(2), x.rated])], [28, 16, 16]);
   add('Level mix by domain', [['Domain', ...D.levels.map(l => l + ' (%)')], ...R.levelMix.map(x => [x.name, ...x.shares.map(p1)])], [40, ...D.levels.map(() => 16)]);
   add('Platform share of domains', [['Domain', ...R.platShare.platforms.map(p => p.name + ' (%)'), 'Other platforms (%)'], ...R.platShare.rows.map(x => [x.name, ...x.shares.map(p1), p1(x.other)])], [40, ...R.platShare.platforms.map(() => 18), 20]);
