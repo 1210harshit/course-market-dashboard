@@ -161,7 +161,7 @@ html.printing #t-top tr.extra { display: none }
     <article class="card"><header><div><h2>Level mix by domain</h2><div class="sub">Share of each domain's courses at each level · all domains</div></div><button class="png" data-chart="c-lvl" data-name="Level mix by domain" type="button">PNG</button></header><div class="chart" id="c-lvl"></div></article>
     <article class="card pagebreak"><header><div><h2>Average rating by platform</h2><div class="sub">Top 10 platforms, courses with 10+ reviews</div></div><button class="png" data-chart="c-rat" data-name="Average rating by platform" type="button">PNG</button></header><div class="chart" id="c-rat"></div></article>
     <article class="card span2"><header><div><h2>Learners per course, by course length</h2><div class="sub">NA = length not available</div></div><button class="png" data-chart="c-len" data-name="Learners per course by course length" type="button">PNG</button></header><div class="chart" id="c-len"></div></article>
-    <article class="card span3"><header><div><h2>Average rating by domain, week by week</h2><div class="sub" id="rt-sub">Courses with 10+ reviews, all platforms · pick a domain to compare it with the market average</div></div><div class="tools"><label for="rt-dom">Domain <select id="rt-dom" autocomplete="off"></select></label><button class="png" data-chart="c-rtr" data-name="Average rating by domain week by week" type="button">PNG</button></div></header><div class="chart" id="c-rtr"></div></article>
+    <article class="card span3"><header><div><h2>Average rating by domain, week by week</h2><div class="sub" id="rt-sub">Courses with 10+ reviews, all platforms · pick a domain to see its trend</div></div><div class="tools"><label for="rt-dom">Domain <select id="rt-dom" autocomplete="off"></select></label><button class="png" data-chart="c-rtr" data-name="Average rating by domain week by week" type="button">PNG</button></div></header><div class="chart" id="c-rtr"></div></article>
     <article class="card span3 pagebreak"><header><div><h2>Trending topics by enrolment</h2><div class="sub">All topics, ranked by learners · trend = new courses in the last 12 months vs the 12 months before · click a row to filter</div></div>
       <div class="tools"><label for="t-q">Search <input class="search" id="t-q" type="search" placeholder="Topic or domain, e.g. Python" autocomplete="off"></label><span class="count" id="t-count"></span></div></header>
       <div class="tbl" id="t-top"></div></article>
@@ -374,11 +374,11 @@ function drawTopics() {
     : `<div class="empty">${q ? 'No topic matches “' + esc($('#t-q').value.trim()) + '”.' : 'No topics for this selection.'}</div>`;
 }
 // average rating by domain, week by week (own domain picker; follows the Domain filter when one is set)
-const TOP5 = '__top5', MARKET = '__all';
+const TOP5 = '__top5';
 function fillTrendSelect() {
   const s = $('#rt-dom'); if (s.options.length) return;
   const byLatest = TREND.domains.slice().sort((a, b) => (TREND.rated[b].at(-1) || 0) - (TREND.rated[a].at(-1) || 0));
-  s.innerHTML = `<option value="${TOP5}">Top 5 domains (by rated courses)</option><option value="${MARKET}">All domains (market average)</option>`
+  s.innerHTML = `<option value="${TOP5}">Top 5 domains (by rated courses)</option>`
     + TREND.domains.slice().sort((a, b) => a.localeCompare(b)).map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
   s.dataset.top = JSON.stringify(byLatest.slice(0, 5));
   s.addEventListener('change', drawTrend);
@@ -387,13 +387,11 @@ function drawTrend() {
   if (!TREND || !TREND.weeks || !TREND.weeks.length) return empty('c-rtr');
   fillTrendSelect();
   const s = $('#rt-dom'), v = s.value || TOP5;
-  const doms = v === TOP5 ? JSON.parse(s.dataset.top) : v === MARKET ? [] : [v];
+  const doms = v === TOP5 ? JSON.parse(s.dataset.top) : [v];
   const fmt = x => x == null ? '–' : x.toFixed(2);
   const series = doms.map((d, k) => ({ name: d, type: 'line', symbol: 'circle', symbolSize: 8, connectNulls: true, lineStyle: { width: 2.5 },
       itemStyle: { color: ['#1976d2', '#1f9e8f', '#e96f12', '#8a6bbf', '#25a8d9'][k % 5] }, data: TREND.rating[d],
-      label: { show: doms.length === 1, position: 'top', fontSize: 11, fontWeight: 600, color: INK, formatter: q => fmt(q.value) } }))
-    .concat([{ name: 'Market average (all domains)', type: 'line', symbol: 'emptyCircle', symbolSize: 7, lineStyle: { width: 2, type: 'dashed' }, itemStyle: { color: '#0f327e' },
-      data: TREND.overall, label: { show: doms.length <= 1, position: 'bottom', fontSize: 11, color: '#0f327e', formatter: q => fmt(q.value) } }]);
+      label: { show: doms.length === 1, position: 'top', fontSize: 11, fontWeight: 600, color: INK, formatter: q => fmt(q.value) } }));
   const vals = series.flatMap(x => x.data).filter(x => x != null), lo = Math.min(...vals), hi = Math.max(...vals);
   chart('c-rtr').setOption({
     animation: false, legend: { ...LEG }, grid: { left: 8, right: 24, top: 34, bottom: 8, containLabel: true },
@@ -470,7 +468,7 @@ $('#xlsx').addEventListener('click', () => {
   add('Enrolments by domain', [['Domain', 'Enrolments'], ...R.enrolDomain.map(x => [x.name, Math.round(x.value)])], [40, 16]);
   add('Learners per course - domain', [['Domain', 'Learners per course', 'Courses reporting enrolments'], ...R.lpcDomain.map(x => [x.name, Math.round(x.value), x.courses])], [40, 20, 28]);
   add('Learners by course length', [['Course length', 'Learners per course', 'Courses reporting enrolments'], ...R.length.map(x => [x.name, Math.round(x.value), x.courses])], [16, 20, 28]);
-  if (TREND) add('Rating by domain - weekly', [['Domain', ...TREND.weeks], ['Market average (all domains)', ...TREND.overall], ...TREND.domains.map(d => [d, ...TREND.rating[d]])], [40, ...TREND.weeks.map(() => 18)]);
+  if (TREND) add('Rating by domain - weekly', [['Domain', ...TREND.weeks], ...TREND.domains.map(d => [d, ...TREND.rating[d]])], [40, ...TREND.weeks.map(() => 18)]);
   add('Rating by platform', [['Platform', 'Average rating', 'Rated courses'], ...R.ratingPlatform.map(x => [x.name, +x.value.toFixed(2), x.rated])], [28, 16, 16]);
   add('Level mix by domain', [['Domain', ...D.levels.map(l => l + ' (%)')], ...R.levelMix.map(x => [x.name, ...x.shares.map(p1)])], [40, ...D.levels.map(() => 16)]);
   add('Platform share of domains', [['Domain', ...R.platShare.platforms.map(p => p.name + ' (%)'), 'Other platforms (%)'], ...R.platShare.rows.map(x => [x.name, ...x.shares.map(p1), p1(x.other)])], [40, ...R.platShare.platforms.map(() => 18), 20]);
