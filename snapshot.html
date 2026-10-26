@@ -374,20 +374,17 @@ function drawTopics() {
     : `<div class="empty">${q ? 'No topic matches “' + esc($('#t-q').value.trim()) + '”.' : 'No topics for this selection.'}</div>`;
 }
 // average rating by domain, week by week (own domain picker; follows the Domain filter when one is set)
-const TOP5 = '__top5';
 function fillTrendSelect() {
   const s = $('#rt-dom'); if (s.options.length) return;
   const byLatest = TREND.domains.slice().sort((a, b) => (TREND.rated[b].at(-1) || 0) - (TREND.rated[a].at(-1) || 0));
-  s.innerHTML = `<option value="${TOP5}">Top 5 domains (by rated courses)</option>`
-    + TREND.domains.slice().sort((a, b) => a.localeCompare(b)).map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
-  s.dataset.top = JSON.stringify(byLatest.slice(0, 5));
+  s.innerHTML = TREND.domains.slice().sort((a, b) => a.localeCompare(b)).map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+  s.value = byLatest[0];   // opens on the domain with the most rated courses
   s.addEventListener('change', drawTrend);
 }
 function drawTrend() {
   if (!TREND || !TREND.weeks || !TREND.weeks.length) return empty('c-rtr');
   fillTrendSelect();
-  const s = $('#rt-dom'), v = s.value || TOP5;
-  const doms = v === TOP5 ? JSON.parse(s.dataset.top) : [v];
+  const doms = [$('#rt-dom').value];
   const fmt = x => x == null ? '–' : x.toFixed(2);
   const series = doms.map((d, k) => ({ name: d, type: 'line', symbol: 'circle', symbolSize: 8, connectNulls: true, lineStyle: { width: 2.5 },
       itemStyle: { color: ['#1976d2', '#1f9e8f', '#e96f12', '#8a6bbf', '#25a8d9'][k % 5] }, data: TREND.rating[d],
