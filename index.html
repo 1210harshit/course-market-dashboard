@@ -605,7 +605,7 @@ const LAYOUT = {
     ${card('en-model', 's6', 'Enrolments by platform type', 'Share of all learners.')}
     ${tcard('en-topics', 's12', 'Trending topics by enrolment', 'Demand = the topic\'s share of all enrolments; supply = its share of all courses. New courses vs last year = courses launched in the last 12 months vs the 12 months before. Click a column header to sort, or a row to filter by the topic.', '<div class="ctrl"><label>Find a topic <input class="search" id="en-tq" type="search" placeholder="e.g. Python" style="width:220px;margin:0"></label><span class="note" id="en-tcount"></span></div>')}`,
   ratings: () => `<div class="kpis" id="k-rt"></div>
-    ${card('rt-trend', 's12 tall', 'Average rating by domain, week by week', 'Courses with 10+ reviews. Click a domain in the legend to show or hide it.')}
+    ${card('rt-trend', 's12', 'Average rating by week', 'Courses with 10+ reviews. Follows the Platform type, Platform and Domain filters: pick a domain to see that domain on its own.')}
     <section class="card s12"><h2>Average rating by course duration</h2><div class="sub" id="rt-dur-sub"></div><div class="chart" id="rt-dur"></div></section>
     ${card('rt-plat', 's6 tall', 'Average rating by platform', 'Courses with 10+ reviews; platforms with 30+ rated courses. Axis starts at 3.')}
     ${card('rt-dom', 's6 tall', 'Average rating by domain', 'Courses with 10+ reviews. Axis starts at 3. Click a bar to filter.')}
@@ -1137,23 +1137,25 @@ function ratingTrend() {
   const W = TREND.weeks.length;
   const platOK = name => { const i = D.platforms.indexOf(name); if (sel.p.size && !sel.p.has(i)) return false; if (sel.m.size && (i < 0 || !sel.m.has(modelOf[i]))) return false; return true; };
   const domSel = sel.d.size ? new Set([...sel.d].map(i => D.domains[i])) : null;
-  const agg = new Map();   // domain -> [[sum, count] per week]
-  for (const [wi, pl, dm, rs, rn] of TREND.rows) {
-    if (/^other/i.test(dm) || !platOK(pl)) continue;
-    let a = agg.get(dm); if (!a) agg.set(dm, a = Array.from({ length: W }, () => [0, 0]));
-    a[wi][0] += rs; a[wi][1] += rn;
+  const wk = Array.from({ length: W }, () => [0, 0]);   // [rating sum, rated courses] per week
+  for (const [wi, pl, dm, rs, rn] of TREND.rows) {       // every domain counts: this is the market line, like the Average rating headline
+    if (!platOK(pl) || (domSel && !domSel.has(dm))) continue;
+    wk[wi][0] += rs; wk[wi][1] += rn;
   }
-  const doms = [...agg.keys()].sort((x, y) => agg.get(y)[W - 1][1] - agg.get(x)[W - 1][1]);
-  const shown = new Set(domSel ? doms.filter(d => domSel.has(d)) : doms.slice(0, 6));
-  const series = doms.map((dm, k) => ({ name: dm, type: 'line', symbol: 'circle', symbolSize: 7, connectNulls: true, lineStyle: { width: 2.5 },
-    itemStyle: { color: PAL[k % PAL.length] }, data: agg.get(dm).map(([sm, n]) => n >= 20 ? +(sm / n).toFixed(3) : null),
-    label: { show: true, position: 'top', fontSize: 10, color: '#3d4d70', formatter: q => q.value == null ? '' : q.value.toFixed(2) } }));
-  c.setOption({ animationDuration: 300, grid: { left: 8, right: 24, top: 64, bottom: 8, containLabel: true },
-    legend: { type: 'scroll', top: 0, textStyle: { fontSize: 11, color: '#3d4d70' }, itemWidth: 14, itemHeight: 8, selected: Object.fromEntries(doms.map(d => [d, shown.has(d)])) },
-    tooltip: { ...TIP, trigger: 'axis', valueFormatter: v => v == null ? '–' : v.toFixed(2) },
+  const vals = wk.map(([sm, n]) => n >= 20 ? +(sm / n).toFixed(3) : null), rated = wk.map(x => x[1]);
+  // ratings barely move week to week (the whole market spans ~0.005 stars), so round the axis out to
+  // the nearest 0.1 with a little padding: an auto-scaled axis turns that noise into a cliff.
+  const fin = vals.filter(v => v != null);
+  const yMin = fin.length ? Math.max(0, Math.floor((Math.min(...fin) - 0.05) * 10) / 10) : undefined;
+  const yMax = fin.length ? Math.min(5, Math.ceil((Math.max(...fin) + 0.05) * 10) / 10) : undefined;
+  c.setOption({ animationDuration: 300, grid: { left: 8, right: 28, top: 28, bottom: 8, containLabel: true },
+    tooltip: { ...TIP, trigger: 'axis', formatter: p => `<b>${esc(TREND.weeks[p[0].dataIndex])}</b><br>` +
+      (p[0].value == null ? 'Fewer than 20 rated courses' : `${p[0].value.toFixed(2)} ★ · ${nf(rated[p[0].dataIndex])} rated courses`) },
     xAxis: { type: 'category', data: TREND.weeks, boundaryGap: false },
-    yAxis: { type: 'value', scale: true, axisLabel: { formatter: v => v.toFixed(2) } },
-    series }, true);
+    yAxis: { type: 'value', min: yMin, max: yMax, axisLabel: { formatter: v => v.toFixed(2) } },
+    series: [{ name: 'Average rating', type: 'line', symbol: 'circle', symbolSize: 8, connectNulls: true,
+      lineStyle: { width: 3, color: PAL[0] }, itemStyle: { color: PAL[0] }, data: vals,
+      label: { show: true, position: 'top', fontSize: 11, color: '#3d4d70', formatter: q => q.value == null ? '' : q.value.toFixed(2) } }] }, true);
 }
 function pRatings() {
   ratingTrend();
